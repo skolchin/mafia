@@ -19,7 +19,7 @@ export default function MessageBox(props) {
     ...props,
     severity: props.severity || "info",
     message: props.message || "",
-    ok: props.ok || "ДА",
+    ok: props.ok || "OK",
   }
     
   return (
