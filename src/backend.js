@@ -19,11 +19,12 @@ class Backend {
         let _login = login.toLowerCase();
         return this.users.find(item => item.login.toLowerCase() === _login);
     }
-    
     loginUser(values) {
         return this.findUser(values.login);
     }
-    
+    logoutUser(login) {
+        return true;
+    }
 }
 
 export const backend = new Backend();

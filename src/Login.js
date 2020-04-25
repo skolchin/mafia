@@ -15,6 +15,7 @@ import MsgBox from './MsgBox';
 export function Login(props) {
     const [state, dispatch] = React.useContext(AuthContext);
     const [toastOpen, setToastOpen] = React.useState(false);
+    const [errorOpen, setErrorOpen] = React.useState(false);
 
     const [values, setValues] = React.useState({
       login: '',
@@ -24,16 +25,21 @@ export function Login(props) {
       setValues({ ...values, [name]: event.target.value });
     };
     const handleLogin = () => {
-      let userInfo = backend.loginUser(values);
-      if (userInfo) {
-        dispatch({
-          type: 'LOGIN',
-          payload: userInfo,
-        });
-        handleClose(false);
+      try {
+        let userInfo = backend.loginUser(values);
+        if (userInfo) {
+          dispatch({
+            type: 'LOGIN',
+            payload: userInfo,
+          });
+          handleClose(false);
+        }
+        else {
+          setToastOpen(true);
+        }
       }
-      else {
-        setToastOpen(true);
+      catch (error) {
+        setErrorOpen(true);
       }
     }
     const handleNewUser = () => {
@@ -47,6 +53,7 @@ export function Login(props) {
     }
     const handleClose = () => {
       setToastOpen(false);
+      setErrorOpen(false);
       props.onClose(false);
     }
 
@@ -84,11 +91,19 @@ export function Login(props) {
             Cancel
           </Button>
         </DialogActions>
+
         <MsgBox open={toastOpen} 
-          severity='info'
-          message={'Login ' + values.login + ' not found. Register?'}
-          onClose={setToastOpen}
-          onOK={handleNewUser}
+          severity = 'info'
+          message = {'Login ' + values.login + ' not found. Register?'}
+          action = "OK"
+          onClose = {setToastOpen}
+          onClick = {handleNewUser}
+          />
+
+        <MsgBox open={errorOpen} 
+          severity = 'error'
+          message = {'Login error, check your password and try again'}
+          onClose = {setErrorOpen}
           />
       </Dialog>
     );

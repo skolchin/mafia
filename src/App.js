@@ -22,7 +22,7 @@ const reducer = (state, action) => {
               login: null,
               token: null,
           }
-          
+
       case "PROFILE":
         return {
           ...state,
@@ -41,7 +41,7 @@ function App() {
   return (
       <div className="App">
         <AuthContext.Provider value={[state, dispatch]}>
-          {state.profileOpening ? <Profile new={true} />  : <Home />}
+          {state.profileOpening ? <Profile />  : <Home />}
         </AuthContext.Provider>
       </div>
     );

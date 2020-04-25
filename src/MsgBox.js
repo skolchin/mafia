@@ -18,8 +18,7 @@ export default function MessageBox(props) {
   const _props = {
     ...props,
     severity: props.severity || "info",
-    message: props.message || "",
-    ok: props.ok || "ДА",
+    message: props.message || ""
   }
     
   return (
@@ -29,11 +28,16 @@ export default function MessageBox(props) {
         autoHideDuration={_props.autoHide} 
         onClick={() => {_props.onClose(false)}}
       >
-        <Alert elevation={6} variant="filled" severity={_props.severity} 
-            action={
-              <Button color="inherit" size="small" onClick={() => {_props.onOK()}}>
-                {_props.ok}
+        <Alert 
+          elevation={6} 
+          variant="filled" 
+          severity={_props.severity} 
+          action={
+            (_props.action ? (
+              <Button color="inherit" size="small" onClick={() => {_props.onClick()}}>
+                {_props.action}
               </Button>
+            ) : (null))
           }
         >
           {_props.message}
