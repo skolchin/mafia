@@ -1,26 +1,50 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Home from './Home';
+import Profile from './Profile';
+
+const initialState = {
+    login: null,
+    token: null,
+    name: null,
+    avatar: null,
+    profileOpening: false,
+}
+
+const reducer = (state, action) => {
+    switch (action.type) {
+      case "LOGIN":
+          return action.payload;
+
+      case "LOGOUT":
+          return {
+              ...state,
+              login: null,
+              token: null,
+          }
+          
+      case "PROFILE":
+        return {
+          ...state,
+          profileOpening: true,
+        }
+        
+      default:
+          return state;
+  }
+}
+
+export const AuthContext = React.createContext(initialState);
 
 function App() {
+  const [state, dispatch] = React.useReducer(reducer, initialState);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+      <div className="App">
+        <AuthContext.Provider value={[state, dispatch]}>
+          {state.profileOpening ? <Profile new={true} />  : <Home />}
+        </AuthContext.Provider>
+      </div>
+    );
 }
 
 export default App;
