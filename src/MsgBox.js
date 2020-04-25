@@ -18,7 +18,8 @@ export default function MessageBox(props) {
   const _props = {
     ...props,
     severity: props.severity || "info",
-    message: props.message || ""
+    message: props.message || "",
+    ok: props.ok || "OK",
   }
     
   return (
