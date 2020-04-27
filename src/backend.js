@@ -2,16 +2,15 @@ export const initialGameState = {
     id: null,
     name: null,
     started: null,
-    round: 1,
+    round: null,
     status: "new",          //new, start, active, finish
-    period: "day",          //day, night
-    voting: "none",         //none, active, done
+    period: null,           //day, night
+    voting: null,           //none, active, done
     voteState: [0, 0],      //[voted, total] of current voting
     citizenState: [0, 0],   //[alive, total] of citizens
     mafiaState: [0, 0],     //[alive, total] of mafia
     total: 1,               //members total
-    leaderId: null,         //ID of leader
-    leaderName: null,       //leader name
+    leader: null,           //leader
     members: [],
 }
 
@@ -35,6 +34,7 @@ class Backend {
                 token: 'a'
             }
         ]
+        this.lastGameId = 0;
     }
     checkUserExists(login) {
         let _login = login.toLowerCase();
@@ -51,7 +51,10 @@ class Backend {
         return true;
     }
 
-    newGame(user) {
+    newGameId() {
+        let id = this.lastGameId;
+        this.lastGameId += 1;
+        return id;
     }
 }
 

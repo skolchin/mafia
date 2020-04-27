@@ -1,37 +1,37 @@
 export const GameDisplayMap = {
         "state": {
-            "new": "Новая",
-            "start": "Регистрация",
-            "active": "Активная",
-            "finish": "Завершена"
+            "new": "New",
+            "start": "Registration",
+            "active": "Active",
+            "finish": "Finished"
         },
         "period": {
-            "day": "День",
-            "night": "Ночь"
+            "day": "Day",
+            "night": "Night"
         },
         "vote": {
-            "none": "Не начато", 
-            "active": "В процессе", 
-            "done": "Завершено"
+            "none": "Not started", 
+            "active": "In process", 
+            "done": "Done"
         },
         "next_state": {
-            "new": "Начать регистрацию",
-            "start": "Начать игру",
+            "new": "Start registration",
+            "start": "Start game",
             "active": "",
             "finish": ""
         },
         "next_period": {
-            "day": "Следующая ночь",
-            "night": "Следующий день"
+            "day": "Start night",
+            "night": "Start day"
         },
 };
 
 export const PersonDisplayMap = {
     "role": {
-        "leader": "Ведущий",
-        "unknown": "Неизвестно",
-        "citizen": "Житель",
-        "mafia": "Мафия"
+        "leader": "Leader",
+        "unknown": "Unknown",
+        "citizen": "Citizen",
+        "mafia": "Mafia"
     },
     "state": {
         "alive": "Активный",

@@ -19,7 +19,8 @@ import Stop from '@material-ui/icons/Stop';
 import AddBoxOutlined from '@material-ui/icons/AddBoxOutlined';
 import PanToolOutlined from '@material-ui/icons/PanToolOutlined';
 
-import { changeGameName, startGame, nextPeriod } from './game';
+import { AuthContext } from './auth';
+import { GameContext } from './game';
 import { GameDisplayMap } from './dict';
 
 const useStyles = makeStyles((theme) => ({
@@ -62,35 +63,32 @@ const useStyles = makeStyles((theme) => ({
   
 }));
 
-export default function GameCard(props) {
+export default function GameCard() {
     const classes = useStyles();
-
-    const game = props.store.getState();
-    const next_title = game.state === "active" ? 
+    const [auth] = React.useContext(AuthContext);
+    const [game, gameDispatch] = React.useContext(GameContext);
+    const next_title = game.status === "active" ? 
         GameDisplayMap["next_period"][game.period] : 
-        GameDisplayMap["next_state"][game.state];
+        GameDisplayMap["next_state"][game.status];
 
     const handleNameChange = (text) => {
-        props.store.dispatch(changeGameName(text))
+        gameDispatch({type: 'CHANGE_NAME', payload: {name: text}});
     }
-
     const handleNextClick = () => {
-        switch(game.state) {
-            case 'new':
-                props.store.dispatch(startGame());
-                break;
-
-            case 'active':
-                props.store.dispatch(nextPeriod());
-                break;
-        };
+        if (game.status === 'new' && !game.name ) {
+            handleNameChange('Game #' + (game.id +1).toString())
+        }
+        gameDispatch({type: 'NEXT_STATE', payload: null});
+    }
+    const handleStopClick = () => {
+        gameDispatch({type: 'STOP', payload: null});
     }
 
   return (
     <Card className={classes.root}>
       <div className={classes.details}>
         <CardContent className={classes.content}>
-            {game.state !== "new" ? (
+            {game.status !== "new" ? (
                 <Typography component="h5" variant="h5">
                     {game.name}
                 </Typography>
@@ -98,7 +96,7 @@ export default function GameCard(props) {
                 <TextField 
                     id="name" 
                     defaultValue={game.name} 
-                    placeholder="Название игры" 
+                    placeholder="Game title" 
                     size="small" 
                     InputProps={{ classes }}
                     onKeyPress={(ev) => {
@@ -113,44 +111,44 @@ export default function GameCard(props) {
             <Table className={classes.table} size="small">
                 <TableBody>
                     <TableRow>
-                        <TableCell>Ведущий</TableCell>
-                        <TableCell align="right">{game.leaderName}</TableCell>
+                        <TableCell>Leader</TableCell>
+                        <TableCell align="right">{game.leader.name}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Начало</TableCell>
+                        <TableCell>Started</TableCell>
                         <TableCell align="right">{dateformat(game.started, 'dd.mm.yyyy HH:MM:ss')}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Раунд</TableCell>
-                        <TableCell align="right">{game.round.toString()}</TableCell>
+                        <TableCell>Round</TableCell>
+                        <TableCell align="right">{game.round ? game.round : 'not started'}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Состояние</TableCell>
-                        <TableCell align="right">{GameDisplayMap["state"][game.state]}</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell align="right">{GameDisplayMap["state"][game.status]}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Период</TableCell>
-                        <TableCell align="right">{GameDisplayMap["period"][game.period]}</TableCell>
+                        <TableCell>Period</TableCell>
+                        <TableCell align="right">{game.period ? GameDisplayMap["period"][game.period] : 'not started'}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Участники</TableCell>
+                        <TableCell>Members</TableCell>
                         <TableCell align="right">
                             <Typography variant="body2" style={{fontSize: "small"}}>
-                                {"всего: " + game.total}
+                                {"total: " + game.total}
                                 <br />
-                                {"граждане: " + game.citizenState[0].toString() + " из " +  game.citizenState[1].toString()}
+                                {"citizens: " + game.citizenState[0].toString() + "/" +  game.citizenState[1].toString()}
                                 <br />
-                                {"мафия: " + game.mafiaState[0].toString() + " из " +  game.mafiaState[1].toString()}
+                                {"mafia: " + game.mafiaState[0].toString() + "/" +  game.mafiaState[1].toString()}
                             </Typography>
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Голосование</TableCell>
+                        <TableCell>Voting</TableCell>
                         <TableCell align="right">
                             <Typography variant="body2" style={{fontSize: "small"}}>
-                                {GameDisplayMap["vote"][game.voting]}
+                                {game.voting ? GameDisplayMap["vote"][game.voting] : "not started"}
                                 {game.voting !== "active" ? "" :
-                                    ": " + game.voteState[0].toString() + " из " +  game.voteState[1].toString()}
+                                    ": " + game.voteState[0].toString() + "/" +  game.voteState[1].toString()}
                             </Typography>
                         </TableCell>
                     </TableRow>
@@ -167,27 +165,28 @@ export default function GameCard(props) {
                     <PlayCircleFilledWhiteOutlined/>
                 </IconButton>
             </Tooltip>
-            <Tooltip title="Начать голосование">
+            <Tooltip title="Start voting">
                 <IconButton 
                     color="primary" 
                     aria-label="vote" 
-                    disabled={game.state !== "active" || game.voting !== "none" || props.user.role !== "leader"}>
+                    disabled={game.state !== "active" || game.voting !== "none" || auth.role !== "leader"}>
                     <PanToolOutlined/>
                 </IconButton>
             </Tooltip>
-            <Tooltip title="Зарегистрироваться">
+            <Tooltip title="Join">
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={game.state !== "start" || !props.user.role === "leader"}>
+                    disabled={game.state !== "start" || !auth.role === "leader"}>
                     <AddBoxOutlined/>
                 </IconButton>
             </Tooltip>
-            <Tooltip title="Остановить игру">
+            <Tooltip title="Stop the game">
                 <IconButton 
                     color="primary" 
                     aria-label="stop" 
-                    disabled={game.state !== "active" || props.user.role !== "leader"}>
+                    disabled={game.state === "finish"}
+                    onClick={handleStopClick}>
                     <Stop/>
                 </IconButton>
             </Tooltip>

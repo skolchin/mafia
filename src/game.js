@@ -1,14 +1,15 @@
 import React from 'react';
-import { initialGameState } from './backend';
+import { initialGameState, backend } from './backend';
 
 const reducer = (state, action) => {
     switch (action.type) {
       case "NEW_GAME":
           return {
               ...initialGameState,
+              id: backend.newGameId(),
+              status: "new",
               started: new Date(),
-              leaderId: action.payload.user.id,
-              leaderName: action.payload.user.name,
+              leader: action.payload.user,
               total: 1,
               members: [action.payload.user]
           }
@@ -19,6 +20,35 @@ const reducer = (state, action) => {
               name: action.payload.name,
           }
 
+      case "NEXT_STATE":
+          switch(state.status) {
+            case 'new':
+                return {
+                    ...state, 
+                    status: 'start' 
+                };
+
+            case 'start':
+                return {
+                    ...state, 
+                    status: 'active', 
+                    period: 'day', 
+                    round: 1 
+                };
+
+            case 'active':
+                return {
+                    ...state, 
+                    period: state.period == 'day' ? 'night' : 'day',
+                    round: state.period == 'night' ? state.round + 1 : state.round,
+                };
+
+            default:
+                return state;
+          }
+
+      case "STOP":
+          return initialGameState;
         
       default:
           return state;

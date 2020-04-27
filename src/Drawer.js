@@ -27,6 +27,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { AuthContext } from './auth';
 import { GameContext } from './game';
 import Login from './Login';
+import GameCard from './GameCard';
 
 const drawerWidth = 320;
 
@@ -233,12 +234,20 @@ export default function GameDrawer(props) {
           </IconButton>
         </div>
         <Divider />
-        <List>
-          <ListItem button key="new_game" onClick={handleNewGame}>
-            <ListItemIcon><AddOutlined /></ListItemIcon>
-            <ListItemText primary="New game" />
-          </ListItem>
-        </List>
+        {game.leader
+          ? (
+            <GameCard />
+          )
+          : auth.login ? (
+            <List>
+              <ListItem button key="new_game" onClick={handleNewGame}>
+                <ListItemIcon><AddOutlined /></ListItemIcon>
+                <ListItemText primary="New game" />
+              </ListItem>
+            </List>
+          )
+          : (null)
+        }
       </Drawer>
 
       <main
