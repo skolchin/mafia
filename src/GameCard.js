@@ -19,8 +19,8 @@ import Stop from '@material-ui/icons/Stop';
 import AddBoxOutlined from '@material-ui/icons/AddBoxOutlined';
 import PanToolOutlined from '@material-ui/icons/PanToolOutlined';
 
-import { AuthContext } from './auth';
-import { GameContext } from './game';
+import { AuthContext } from './auth_reducer';
+import { GameListContext } from './game_list_reducer';
 import { GameDisplayMap } from './dict';
 
 const useStyles = makeStyles((theme) => ({
@@ -63,25 +63,26 @@ const useStyles = makeStyles((theme) => ({
   
 }));
 
-export default function GameCard() {
+export default function GameCard(props) {
     const classes = useStyles();
     const [auth] = React.useContext(AuthContext);
-    const [game, gameDispatch] = React.useContext(GameContext);
+    const [gameList, gameListDispatch] = React.useContext(GameListContext);
+    const game = props.game;
     const next_title = game.status === "active" ? 
         GameDisplayMap["next_period"][game.period] : 
         GameDisplayMap["next_state"][game.status];
 
     const handleNameChange = (text) => {
-        gameDispatch({type: 'CHANGE_NAME', payload: {name: text}});
+        gameListDispatch({type: 'CHANGE_NAME', payload: {id: game.id, name: text}});
     }
     const handleNextClick = () => {
         if (game.status === 'new' && !game.name ) {
             handleNameChange('Game #' + (game.id +1).toString())
         }
-        gameDispatch({type: 'NEXT_STATE', payload: null});
+        gameListDispatch({type: 'NEXT_STATE', payload: {id: game.id, }});
     }
     const handleStopClick = () => {
-        gameDispatch({type: 'STOP', payload: null});
+        gameListDispatch({type: 'STOP_GAME', payload: {id: game.id, }});
     }
 
   return (
@@ -96,7 +97,7 @@ export default function GameCard() {
                 <TextField 
                     id="name" 
                     defaultValue={game.name} 
-                    placeholder="Game title" 
+                    placeholder="Название игры" 
                     size="small" 
                     InputProps={{ classes }}
                     onKeyPress={(ev) => {
@@ -106,7 +107,7 @@ export default function GameCard() {
                         }
                       }}                    
                 />
-            )}
+            )}            
             <Divider />
             <Table className={classes.table} size="small">
                 <TableBody>
@@ -160,7 +161,7 @@ export default function GameCard() {
                 <IconButton 
                     color="primary" 
                     aria-label="next" 
-                    disabled={game.state === "finish"}
+                    disabled={game.status === "finish"}
                     onClick={handleNextClick}>
                     <PlayCircleFilledWhiteOutlined/>
                 </IconButton>
@@ -169,7 +170,7 @@ export default function GameCard() {
                 <IconButton 
                     color="primary" 
                     aria-label="vote" 
-                    disabled={game.state !== "active" || game.voting !== "none" || auth.role !== "leader"}>
+                    disabled={game.status !== "active" || game.voting !== "none"}>
                     <PanToolOutlined/>
                 </IconButton>
             </Tooltip>
@@ -177,7 +178,7 @@ export default function GameCard() {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={game.state !== "start" || !auth.role === "leader"}>
+                    disabled={game.status !== "start"}>
                     <AddBoxOutlined/>
                 </IconButton>
             </Tooltip>
@@ -185,7 +186,7 @@ export default function GameCard() {
                 <IconButton 
                     color="primary" 
                     aria-label="stop" 
-                    disabled={game.state === "finish"}
+                    disabled={game.status === "finish"}
                     onClick={handleStopClick}>
                     <Stop/>
                 </IconButton>

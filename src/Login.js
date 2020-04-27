@@ -8,7 +8,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import withMobileDialog from '@material-ui/core/withMobileDialog';
 
-import { AuthContext } from './auth';
+import { AuthContext } from './auth_reducer';
 import { backend } from './backend';
 import MsgBox from './MsgBox';
 

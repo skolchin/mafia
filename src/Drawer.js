@@ -20,12 +20,15 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import AddOutlined from '@material-ui/icons/AddOutlined';
+import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
+import Block from '@material-ui/icons/Block';
+import Adjust from '@material-ui/icons/Adjust';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import { AuthContext } from './auth';
-import { GameContext } from './game';
+import { AuthContext } from './auth_reducer';
+import { GameListContext } from './game_list_reducer';
+import { GameDisplayMap } from './dict';
 import Login from './Login';
 import GameCard from './GameCard';
 
@@ -99,12 +102,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function GameDrawer(props) {
+export default function GameDrawer() {
   const classes = useStyles();
   const theme = useTheme();
   const [drawerOpen, setOpen] = React.useState(true);
+  const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [auth, authDispatch] = React.useContext(AuthContext);
-  const [game, gameDispatch] = React.useContext(GameContext);
+  const [gameList, gameListDispatch] = React.useContext(GameListContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [loginOpen, setLoginOpen] = React.useState(false);
   const menuOpen = Boolean(anchorEl);
@@ -122,8 +126,11 @@ export default function GameDrawer(props) {
     setAnchorEl(null);
   };
   const handleNewGame = () => {
-    gameDispatch({ type: 'NEW_GAME', payload: {user: auth}});
+    gameListDispatch({ type: 'NEW_GAME', payload: {user: auth}});
   };
+  const handleGameSel = (index) => {
+    setSelectedIndex(index);
+  }
   const handleLogin = () => {
     setLoginOpen(true);
     handleMenuClose();
@@ -234,20 +241,28 @@ export default function GameDrawer(props) {
           </IconButton>
         </div>
         <Divider />
-        {game.leader
-          ? (
-            <GameCard />
-          )
-          : auth.login ? (
+          {auth.login && (
             <List>
-              <ListItem button key="new_game" onClick={handleNewGame}>
-                <ListItemIcon><AddOutlined /></ListItemIcon>
+              <ListItem button id={null} onClick={handleNewGame}>
+                <ListItemIcon><AddCircleOutline /></ListItemIcon>
                 <ListItemText primary="New game" />
               </ListItem>
+              {gameList.games.map((item, index) => (
+                <ListItem button id={item.id} onClick={(e) => handleGameSel(index)}>
+                  <ListItemIcon>
+                    {item.status !== "finish"
+                      ? (<Adjust />)
+                      : (<Block />)
+                    }
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.name}
+                    secondary={GameDisplayMap["state"][item.status]}
+                  />
+                </ListItem>
+              ))}
             </List>
-          )
-          : (null)
-        }
+          )}
       </Drawer>
 
       <main
@@ -256,7 +271,9 @@ export default function GameDrawer(props) {
         })}
       >
         <div className={classes.drawerHeader} />
-        <Typography>Here we would have members</Typography>
+        {selectedIndex >= 0 && (
+          <GameCard game={gameList.games[selectedIndex]} />
+        )}
       </main>
 
       <Login open={loginOpen} onClose={setLoginOpen} />

@@ -51,10 +51,19 @@ class Backend {
         return true;
     }
 
-    newGameId() {
+    newGame(user) {
         let id = this.lastGameId;
         this.lastGameId += 1;
-        return id;
+        return {
+            ...initialGameState,
+            id: id,
+            name: "Game #" + this.lastGameId.toString(),
+            status: "new",
+            started: new Date(),
+            leader: user,
+            total: 1,
+            members: [user]
+        }
     }
 }
 

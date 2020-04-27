@@ -1,19 +1,8 @@
 import React from 'react';
-import { initialGameState, backend } from './backend';
+import { initialGameState } from './backend';
 
 const reducer = (state, action) => {
     switch (action.type) {
-      case "NEW_GAME":
-          return {
-              ...initialGameState,
-              id: backend.newGameId(),
-              status: "new",
-              started: new Date(),
-              leader: action.payload.user,
-              total: 1,
-              members: [action.payload.user]
-          }
-
       case "CHANGE_NAME":
           return {
               ...state,
@@ -47,9 +36,12 @@ const reducer = (state, action) => {
                 return state;
           }
 
-      case "STOP":
-          return initialGameState;
-        
+      case "STOP_GAME":
+        return {
+            ...state, 
+            status: 'finish', 
+        };
+
       default:
           return state;
   }
@@ -57,5 +49,4 @@ const reducer = (state, action) => {
 
 export const GameContext = React.createContext(initialGameState);
 export const GameReducer = () => React.useReducer(reducer, initialGameState);
-
-
+export default reducer;
