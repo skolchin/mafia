@@ -1,5 +1,5 @@
 import React from 'react';
-import { initialGameState } from './backend';
+import { initialGameState, backend } from './backend';
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -42,6 +42,12 @@ const reducer = (state, action) => {
             status: 'finish', 
         };
 
+        case 'JOIN_GAME':
+            return backend.joinGame(state, action.payload.user, action.payload.role);
+    
+        case 'ASSIGN_ROLES':
+            return backend.assignRoles(state);
+    
       default:
           return state;
   }

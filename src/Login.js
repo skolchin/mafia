@@ -23,6 +23,8 @@ export function Login(props) {
     })
     const handleChange = name => event => {
       setValues({ ...values, [name]: event.target.value });
+      setToastOpen(false);
+      setErrorOpen(false);
     };
     const handleLogin = () => {
       try {

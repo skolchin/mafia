@@ -167,7 +167,7 @@ export default function GameDrawer() {
             Mafia!!!
           </Typography>
           <div>
-            <Tooltip title={(auth && auth.login ? auth.name : "")}>
+            <Tooltip title={(auth && auth.login ? auth.name : "Not logged in")}>
               <IconButton
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
@@ -271,7 +271,7 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        {selectedIndex >= 0 && (
+        {auth.login && selectedIndex >= 0 && (
           <GameCard game={gameList.games[selectedIndex]} />
         )}
       </main>

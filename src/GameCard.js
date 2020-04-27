@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import dateformat from 'dateformat';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
@@ -22,6 +22,9 @@ import PanToolOutlined from '@material-ui/icons/PanToolOutlined';
 import { AuthContext } from './auth_reducer';
 import { GameListContext } from './game_list_reducer';
 import { GameDisplayMap } from './dict';
+import { backend } from './backend';
+
+import MsgBox from './MsgBox';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -65,9 +68,18 @@ const useStyles = makeStyles((theme) => ({
 
 export default function GameCard(props) {
     const classes = useStyles();
+    const game = props.game;
     const [auth] = React.useContext(AuthContext);
     const [gameList, gameListDispatch] = React.useContext(GameListContext);
-    const game = props.game;
+    const [errorOpen, setErrorOpen] = React.useState(null);
+
+    useEffect(() => {
+        if (gameList.error) {
+            setErrorOpen(gameList.error);
+            gameList.error = null;
+        };
+    });
+
     const next_title = game.status === "active" ? 
         GameDisplayMap["next_period"][game.period] : 
         GameDisplayMap["next_state"][game.status];
@@ -81,8 +93,14 @@ export default function GameCard(props) {
         }
         gameListDispatch({type: 'NEXT_STATE', payload: {id: game.id, }});
     }
+    const handleJoinClick = () => {
+        gameListDispatch({type: 'JOIN_GAME', payload: {id: game.id, user: auth}});
+    }
     const handleStopClick = () => {
         gameListDispatch({type: 'STOP_GAME', payload: {id: game.id, }});
+    }
+    const handleErrorClose = () => {
+        setErrorOpen(null);
     }
 
   return (
@@ -97,7 +115,7 @@ export default function GameCard(props) {
                 <TextField 
                     id="name" 
                     defaultValue={game.name} 
-                    placeholder="Название игры" 
+                    placeholder="Game title" 
                     size="small" 
                     InputProps={{ classes }}
                     onKeyPress={(ev) => {
@@ -161,7 +179,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="next" 
-                    disabled={game.status === "finish"}
+                    disabled={game.status === "finish" || game.leader.id !== auth.id}
                     onClick={handleNextClick}>
                     <PlayCircleFilledWhiteOutlined/>
                 </IconButton>
@@ -178,7 +196,8 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={game.status !== "start"}>
+                    disabled={game.status !== "start" || game.leader.id === auth.id || backend.checkInGame(game, auth)}
+                    onClick={handleJoinClick}>
                     <AddBoxOutlined/>
                 </IconButton>
             </Tooltip>
@@ -186,12 +205,18 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="stop" 
-                    disabled={game.status === "finish"}
+                    disabled={game.status === "finish" || game.leader.id !== auth.id}
                     onClick={handleStopClick}>
                     <Stop/>
                 </IconButton>
             </Tooltip>
         </CardActions>
+        <MsgBox open={errorOpen != null} 
+          severity = 'error'
+          autoHide = {3000}
+          message = {errorOpen}
+          onClose = {handleErrorClose}
+          />
       </div>
     </Card>
   );
