@@ -90,7 +90,7 @@ class Backend:
         cursor = conn.execute('select image, content_type from avatars where user_id = ? and is_default = 1', [user_id])
         d = cursor.fetchone()
         if d is None:
-            return None
+            return None, None
         else:
             return d.get('image'), d.get('content_type')
 
