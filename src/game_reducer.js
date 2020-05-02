@@ -1,5 +1,5 @@
 import React from 'react';
-import { initialGameState, backend } from './backend';
+import Backend from './backend';
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -43,16 +43,16 @@ const reducer = (state, action) => {
         };
 
         case 'JOIN_GAME':
-            return backend.joinGame(state, action.payload.user, action.payload.role);
+            return Backend.joinGame(state, action.payload.user, action.payload.role);
     
         case 'ASSIGN_ROLES':
-            return backend.assignRoles(state);
+            return Backend.assignRoles(state);
     
       default:
           return state;
   }
 }
 
-export const GameContext = React.createContext(initialGameState);
-export const GameReducer = () => React.useReducer(reducer, initialGameState);
+export const GameContext = React.createContext(Backend.emptyGame());
+export const GameReducer = () => React.useReducer(reducer, Backend.emptyGame());
 export default reducer;

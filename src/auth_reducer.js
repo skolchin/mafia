@@ -1,5 +1,5 @@
 import React from 'react';
-import { initialAuthState } from './backend';
+import Backend from './backend';
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -7,7 +7,7 @@ const reducer = (state, action) => {
           return action.payload;
 
       case "LOGOUT":
-          return initialAuthState;
+          return Backend.emptyUser();
 
       case "PROFILE":
         return {
@@ -20,7 +20,7 @@ const reducer = (state, action) => {
   }
 }
 
-export const AuthContext = React.createContext(initialAuthState);
-export const AuthReducer = () => React.useReducer(reducer, initialAuthState);
+export const AuthContext = React.createContext(Backend.emptyUser());
+export const AuthReducer = () => React.useReducer(reducer, Backend.emptyUser());
 
 

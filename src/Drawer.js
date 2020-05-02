@@ -29,6 +29,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { AuthContext } from './auth_reducer';
 import { GameListContext } from './game_list_reducer';
 import { GameDisplayMap } from './dict';
+import Backend from './backend';
 import Login from './Login';
 import GameCard from './GameCard';
 
@@ -175,16 +176,12 @@ export default function GameDrawer() {
                 onClick={handleMenu}
                 color="inherit"
               >
-                {auth.avatar || auth.name 
-                ? (
-                  <Avatar 
-                    src={auth.avatar ? process.env.PUBLIC_URL + '/' + auth.avatar : ""} 
-                    className={classes.appBarAvatar}
-                  >
-                    {(!auth.avatar ? auth.name[0].toUpperCase() : null)} 
+                {auth.login
+                ? (<Avatar color="inherit" src={Backend.avatarURL(auth)} className={classes.appBarAvatar}>
+                    {!auth.has_avatar ? Backend.nameInitials(auth) : null}
                   </Avatar>
-                  )
-                : (
+                )
+              : (
                   <Avatar color="inherit" className={classes.appBarAvatar}>
                     <AccountCircle />
                   </Avatar>

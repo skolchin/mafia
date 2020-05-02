@@ -6,57 +6,85 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import withMobileDialog from '@material-ui/core/withMobileDialog';
 
 import { AuthContext } from './auth_reducer';
-import { backend } from './backend';
+import Backend from './backend';
 import MsgBox from './MsgBox';
 
 export function Login(props) {
     const [state, dispatch] = React.useContext(AuthContext);
     const [toastOpen, setToastOpen] = React.useState(false);
-    const [errorOpen, setErrorOpen] = React.useState(false);
 
-    const [values, setValues] = React.useState({
-      login: '',
-      password: ''
-    })
+    const initialState = {
+      login: "",
+      password: "",
+      isSubmitting: false,
+      errorMessage: null
+    };
+    const [data, setData] = React.useState(initialState);
+  
     const handleChange = name => event => {
-      setValues({ ...values, [name]: event.target.value });
+      setData({ ...data, [name]: event.target.value, errorMessage: null });
       setToastOpen(false);
-      setErrorOpen(false);
     };
     const handleLogin = () => {
-      try {
-        let userInfo = backend.loginUser(values);
-        if (userInfo) {
+      setData({
+        ...data,
+        isSubmitting: true
+      })
+      Backend.loginUser(data)
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw res;
+      })
+      .then(resJson => {
+        if (resJson['token']) {
+          // OK
           dispatch({
-            type: 'LOGIN',
-            payload: userInfo,
-          });
+              type: "LOGIN",
+              payload: resJson
+          })
           handleClose(false);
         }
-        else {
+        else if (!resJson['user_id']) {
+          // User not found
           setToastOpen(true);
         }
-      }
-      catch (error) {
-        setErrorOpen(true);
-      }
+        else {
+          // Wrong password
+          setData({
+            ...data,
+            isSubmitting: false,
+            errorMessage: "Invalid password"
+          });
+        }
+      })
+      .catch(error => {
+        setData({
+          ...data,
+          isSubmitting: false,
+          errorMessage: error.message || error.statusText
+        });
+      });
     }
+
     const handleNewUser = () => {
       dispatch({
         type: 'PROFILE',
-        payload: {
-            login: values.login,
-            token: values.password
-        }
+        payload: data,
       })
     }
     const handleClose = () => {
       setToastOpen(false);
-      setErrorOpen(false);
+      setData({...data, errorMessage: null});
       props.onClose(false);
+    }
+    const handleErrorClose = () => {
+      setData({...data, errorMessage: null});
     }
 
     return (
@@ -69,6 +97,7 @@ export function Login(props) {
           </DialogContentText>
           <TextField
             autoFocus
+            disabled={data.isSubmitting} 
             margin = "dense"
             id = "login"
             label = "Email"
@@ -78,6 +107,7 @@ export function Login(props) {
           />
           <TextField
             margin = "dense"
+            disabled={data.isSubmitting} 
             id = "password"
             label = "Password"
             type = "password"
@@ -86,26 +116,30 @@ export function Login(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button color="primary" onClick={handleLogin}>
-            Login
+          <Button color="primary" disabled={data.isSubmitting} onClick={handleLogin}>
+          {data.isSubmitting
+             ? (<CircularProgress/>)
+            : ('Login')
+          }
           </Button>
-          <Button color="primary" onClick={handleClose}>
+          <Button color="primary" disabled={data.isSubmitting} onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>
 
         <MsgBox open={toastOpen} 
           severity = 'info'
-          message = {'Login ' + values.login + ' not found. Register?'}
+          message = {'Login ' + data.login + ' not found. Register?'}
           action = "OK"
           onClose = {setToastOpen}
           onClick = {handleNewUser}
           />
 
-        <MsgBox open={errorOpen} 
+        <MsgBox open={data.errorMessage} 
           severity = 'error'
-          message = {'Login error, check your password and try again'}
-          onClose = {setErrorOpen}
+          message = {data.errorMessage}
+          autoHide = {3000}
+          onClose = {handleErrorClose}
           />
       </Dialog>
     );

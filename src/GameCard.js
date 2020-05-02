@@ -22,7 +22,7 @@ import PanToolOutlined from '@material-ui/icons/PanToolOutlined';
 import { AuthContext } from './auth_reducer';
 import { GameListContext } from './game_list_reducer';
 import { GameDisplayMap } from './dict';
-import { backend } from './backend';
+import Backend from './backend';
 
 import MsgBox from './MsgBox';
 
@@ -78,7 +78,7 @@ export default function GameCard(props) {
             setErrorOpen(gameList.error);
             gameList.error = null;
         };
-    });
+    }, [gameList.error]);
 
     const next_title = game.status === "active" ? 
         GameDisplayMap["next_period"][game.period] : 
@@ -196,7 +196,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={game.status !== "start" || game.leader.id === auth.id || backend.checkInGame(game, auth)}
+                    disabled={game.status !== "start" || game.leader.id === auth.id || Backend.checkInGame(game, auth)}
                     onClick={handleJoinClick}>
                     <AddBoxOutlined/>
                 </IconButton>

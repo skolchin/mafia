@@ -1,11 +1,6 @@
 import React from 'react';
-import { backend } from './backend';
+import Backend from './backend';
 import gameReducer from './game_reducer';
-
-const initialState = {
-    games: [],
-    error: null,
-}
 
 const callGameReducer = (state, action) => {
     return state.games.map(g => (g.id === action.payload.id ? gameReducer(g, action) : g));
@@ -19,7 +14,7 @@ const reducer = (state, action) => {
                     ...state, 
                     games: [
                         ...state.games, 
-                        backend.newGame(action.payload.user)
+                        Backend.newGame(action.payload.user)
                     ],
                     error: null,
                 };
@@ -45,5 +40,5 @@ const reducer = (state, action) => {
     }
 }
 
-export const GameListContext = React.createContext(initialState);
-export const GameListReducer = () => React.useReducer(reducer, initialState);
+export const GameListContext = React.createContext(Backend.emptyGameList());
+export const GameListReducer = () => React.useReducer(reducer, Backend.emptyGameList());
