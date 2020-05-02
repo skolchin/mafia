@@ -52,6 +52,10 @@ export function Login(props) {
         }
         else if (!resJson['user_id']) {
           // User not found
+          setData({
+            ...data,
+            isSubmitting: false
+          });
           setToastOpen(true);
         }
         else {
