@@ -3,12 +3,13 @@ import sys
 import os
 import json
 import sqlite3 as engine
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 import base64
 
 class Backend:
     MAFIA_DB = "C:\\Users\\kol\\Documents\\kol\\mafia\\mafia.db"
+    SESSION_PERIOD = 7      # days
 
     def __init__(self):
         pass
@@ -71,28 +72,72 @@ class Backend:
             raise Exception('Invalid method call')
         return cursor.fetchone()
 
-    def login_user(self, password, user_id=None, login=None):
-        user = self.get_user(user_id, login)
+    def login_user(self, login, password):
+        user = self.get_user(login=login)
         if user is None:
-            print("User not found")
             return { 'user_id': 0 }
         elif user['token'] != password:
-            print("Invalid password")
             user['token'] = None
             return user
         else:
-            print("Logged on successfully")
-            user['token'] = str(uuid.uuid1())             
+            user['token'] = str(uuid.uuid1())
+
+            conn = self.get_conn()
+            conn.execute('insert into sessions(token, user_id, started, expires_on) ' + \
+                         'values(?, ?, ?, ?)', \
+                        [user['token'], user['user_id'], datetime.now(), 
+                         datetime.now() + timedelta(days=self.SESSION_PERIOD)]
+            )
+            conn.commit()
             return user
 
     def get_avatar(self, user_id):
         conn = self.get_conn()
-        cursor = conn.execute('select image, content_type from avatars where user_id = ? and is_default = 1', [user_id])
+        cursor = conn.execute('select image, content_type from avatars where user_id=? and is_default=1', [user_id])
         d = cursor.fetchone()
         if d is None:
             return None, None
         else:
             return d.get('image'), d.get('content_type')
+
+    def validate_session(self, user_id, token):
+        conn = self.get_conn()
+        cursor = conn.execute('select * from sessions where token=? and user_id=? and inactive=0', 
+                              [token, user_id])
+        d = cursor.fetchone()
+        if d is None:
+            return {
+                'user_id': user_id,
+                'token': token,
+                'valid': False
+            }
+        else:
+            d['valid'] = d['expires_on'] >= datetime.now()
+            return d
+
+    def restore_session(self, token):
+        conn = self.get_conn()
+        cursor = conn.execute('select u.*, s.token, s.started, s.expires_on from sessions s ' + \
+                              'inner join users u on s.user_id = u.user_id ' + \
+                              'where s.token=? and s.inactive=0', 
+                              [token])
+        d = cursor.fetchone()
+        if d is None or datetime.strptime(d['expires_on'], '%Y-%m-%d %H:%M:%S.%f') < datetime.now():
+            return {
+                'user_id': None,
+                'login': None,
+                'token': token,
+                'valid': False
+            }
+        else:
+            d['valid'] = True
+            return d
+
+    def logout_user(self, user_id, token):
+        conn = self.get_conn()
+        conn.execute('update sessions set inactive=1 where token = ? and user_id = ?', [token, user_id])
+        conn.commit()
+        return {}
 
     def games(self, user_id):
         conn = self.get_conn()

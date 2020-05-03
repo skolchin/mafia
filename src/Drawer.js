@@ -1,5 +1,7 @@
 import React from 'react';
+import { useCookies } from 'react-cookie';
 import clsx from 'clsx';
+
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -13,7 +15,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Tooltip from  '@material-ui/core/Tooltip';
 import Avatar from '@material-ui/core/Avatar';
-import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -113,6 +114,7 @@ export default function GameDrawer() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [loginOpen, setLoginOpen] = React.useState(false);
   const menuOpen = Boolean(anchorEl);
+  const [cookies, setCookie, removeCookie] = useCookies(['token']);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -142,6 +144,9 @@ export default function GameDrawer() {
   }
   const handleLogout = () => {
     handleMenuClose();
+    Backend.logoutUser(auth);
+    setCookie('token', null, { path: '/' });
+    removeCookie('token', { path: '/' })
     authDispatch({type: 'LOGOUT', payload: auth,})
   }
 

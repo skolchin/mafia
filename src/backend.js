@@ -45,8 +45,36 @@ export default class Backend {
             },
             credentials: "same-origin",
             body: JSON.stringify({
-              login: values.login,
-              password: values.password
+                a: "login",
+                login: values.login,
+                password: values.password
+            })
+          })
+    }
+    static restoreSession(token) {
+        return fetch('http://localhost:5000/auth',  {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                a: "restore",
+                token: token
+            })
+          })
+    }
+    static logoutUser(values) {
+        return fetch('http://localhost:5000/auth',  {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                a: "logout",
+                user_id: values.user_id,
+                token: values.token
             })
           })
     }
@@ -56,9 +84,6 @@ export default class Backend {
     static nameInitials(values) {
         var parts = values.name.toUpperCase().split(' ')
         return parts[0][0] + (parts.length > 1 ? parts[1][0] : '')
-    }
-    static logoutUser(login) {
-        return true;
     }
 
     static emptyGame() {
@@ -107,8 +132,8 @@ export default class Backend {
         game.members.forEach(item => {
             if (item.role !== 'leader') {
                 let r = Math.round(Math.random());
-                item.role = (r == 0 && mafiaCount < mafiaTotal ? "mafia" : "citizen");
-                if (item.role == "mafia") mafiaCount += 1;
+                item.role = (r === 0 && mafiaCount < mafiaTotal ? "mafia" : "citizen");
+                if (item.role === "mafia") mafiaCount += 1;
             }
         });
         return game.members;

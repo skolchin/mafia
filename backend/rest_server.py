@@ -29,25 +29,34 @@ class UserResource(Resource):
 class AuthResource(Resource):
     def post(self):
         parser = reqparse.RequestParser()
+        parser.add_argument('a', type=str, required=True)
         parser.add_argument('user_id', type=int, required=False)
         parser.add_argument('login', type=str, required=False)
-        parser.add_argument('password', type=str, required=True)
+        parser.add_argument('password', type=str, required=False)
+        parser.add_argument('token', type=str, required=False)
         args = parser.parse_args()
-        print(args)
-        return backend.login_user(args.password, args.user_id, args.login)
+        if args.a.lower() == 'login':
+            return backend.login_user(args.login, args.password)
+        elif args.a.lower() == 'check':
+            return backend.validate_session(args.user_id, args.token)
+        elif args.a.lower() == 'restore':
+            return backend.restore_session(args.token)
+        elif args.a.lower() == 'logout':
+            return backend.logout_user(args.user_id, args.token)
+        else:
+            return None
 
 class UserAvatarResource(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('user_id', type=int, required=True)
-        #parser.add_argument('default', type=bool, default=True, required=False)
         args = parser.parse_args()
         im, ctype = backend.get_avatar(args.user_id)
         response = make_response(im)
-        response.headers['content-type'] = ctype if ctype is not None else 'image/jpeg'
+        response.headers['content-type'] = ctype
         return response
 
-api.add_resource(UserResource, '/users')
+#api.add_resource(UserResource, '/users')
 api.add_resource(AuthResource, '/auth')
 api.add_resource(UserAvatarResource, '/ua')
 

@@ -28,8 +28,8 @@ const reducer = (state, action) => {
             case 'active':
                 return {
                     ...state, 
-                    period: state.period == 'day' ? 'night' : 'day',
-                    round: state.period == 'night' ? state.round + 1 : state.round,
+                    period: state.period === 'day' ? 'night' : 'day',
+                    round: state.period === 'night' ? state.round + 1 : state.round,
                 };
 
             default:

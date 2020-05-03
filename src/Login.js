@@ -1,4 +1,6 @@
 import React from 'react';
+import { useCookies } from 'react-cookie';
+
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -16,6 +18,7 @@ import MsgBox from './MsgBox';
 export function Login(props) {
     const [state, dispatch] = React.useContext(AuthContext);
     const [toastOpen, setToastOpen] = React.useState(false);
+    const [cookies, setCookie] = useCookies(['token']);
 
     const initialState = {
       login: "",
@@ -49,6 +52,7 @@ export function Login(props) {
               payload: resJson
           })
           handleClose(false);
+          setCookie('token', resJson.token, { path: '/' });
         }
         else if (!resJson['user_id']) {
           // User not found
