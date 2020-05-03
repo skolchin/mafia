@@ -19,6 +19,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
@@ -33,6 +34,7 @@ import { GameDisplayMap } from './dict';
 import Backend from './backend';
 import Login from './Login';
 import GameCard from './GameCard';
+import MsgBox from './MsgBox';
 
 const drawerWidth = 320;
 
@@ -108,13 +110,19 @@ export default function GameDrawer() {
   const classes = useStyles();
   const theme = useTheme();
   const [drawerOpen, setOpen] = React.useState(true);
-  const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [auth, authDispatch] = React.useContext(AuthContext);
   const [gameList, gameListDispatch] = React.useContext(GameListContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [loginOpen, setLoginOpen] = React.useState(false);
   const menuOpen = Boolean(anchorEl);
-  const [cookies, setCookie, removeCookie] = useCookies(['token']);
+  const [, setCookie, removeCookie] = useCookies(['token']);
+
+  const initialState = {
+    selected: -1,
+    isSubmitting: false,
+    errorMessage: null
+  };
+  const [data, setData] = React.useState(initialState);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -129,10 +137,36 @@ export default function GameDrawer() {
     setAnchorEl(null);
   };
   const handleNewGame = () => {
-    gameListDispatch({ type: 'NEW_GAME', payload: {user: auth}});
-  };
+    setData({
+      ...data,
+      isSubmitting: true
+    })
+    Backend.newGame(auth)
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+      throw res;
+    })
+    .then(resJson => {
+      gameListDispatch({
+          type: "NEW_GAME",
+          payload: resJson
+      })
+    })
+    .catch(error => {
+      setData({
+        ...data,
+        isSubmitting: false,
+        errorMessage: error.message || error.statusText
+      });
+    });
+  }
   const handleGameSel = (index) => {
-    setSelectedIndex(index);
+    setData({
+      ...data,
+      selected: index,
+    })
   }
   const handleLogin = () => {
     setLoginOpen(true);
@@ -148,6 +182,9 @@ export default function GameDrawer() {
     setCookie('token', null, { path: '/' });
     removeCookie('token', { path: '/' })
     authDispatch({type: 'LOGOUT', payload: auth,})
+  }
+  const handleErrorClose = () => {
+    setData({...data, errorMessage: null});
   }
 
   return (
@@ -170,7 +207,7 @@ export default function GameDrawer() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap  className={classes.drawerTitle}>
-            Mafia!!!
+            Mafia!
           </Typography>
           <div>
             <Tooltip title={(auth && auth.login ? auth.name : "Not logged in")}>
@@ -245,12 +282,15 @@ export default function GameDrawer() {
         <Divider />
           {auth.login && (
             <List>
-              <ListItem button id={null} onClick={handleNewGame}>
-                <ListItemIcon><AddCircleOutline /></ListItemIcon>
+              <ListItem button key="new" disabled={data.isSubmitting} onClick={handleNewGame}>
+                <ListItemIcon>
+                  {data.isSubmitting ? (<CircularProgress/>) : (<AddCircleOutline />)}
+                </ListItemIcon>
                 <ListItemText primary="New game" />
               </ListItem>
+
               {gameList.games.map((item, index) => (
-                <ListItem button id={item.id} onClick={(e) => handleGameSel(index)}>
+                <ListItem button key={item.id} disabled={data.isSubmitting} onClick={(e) => handleGameSel(index)}>
                   <ListItemIcon>
                     {item.status !== "finish"
                       ? (<Adjust />)
@@ -273,12 +313,18 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        {auth.login && selectedIndex >= 0 && (
-          <GameCard game={gameList.games[selectedIndex]} />
+        {auth.login && data.selected >= 0 && (
+          <GameCard game={gameList.games[data.selected]} />
         )}
       </main>
 
       <Login open={loginOpen} onClose={setLoginOpen} />
+      <MsgBox open={data.errorMessage} 
+          severity = 'error'
+          message = {data.errorMessage}
+          autoHide = {3000}
+          onClose = {handleErrorClose}
+          />
     </div>
   );
 }

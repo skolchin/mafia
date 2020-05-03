@@ -12,13 +12,15 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import withMobileDialog from '@material-ui/core/withMobileDialog';
 
 import { AuthContext } from './auth_reducer';
+import { GameListContext } from './game_list_reducer';
 import Backend from './backend';
 import MsgBox from './MsgBox';
 
 export function Login(props) {
-    const [state, dispatch] = React.useContext(AuthContext);
+    const [, authDispatch] = React.useContext(AuthContext);
+    const [, gameListDispatch] = React.useContext(GameListContext);
     const [toastOpen, setToastOpen] = React.useState(false);
-    const [cookies, setCookie] = useCookies(['token']);
+    const [, setCookie] = useCookies(['token']);
 
     const initialState = {
       login: "",
@@ -45,14 +47,18 @@ export function Login(props) {
         throw res;
       })
       .then(resJson => {
-        if (resJson['token']) {
+        if (resJson.user && resJson.user.token) {
           // OK
-          dispatch({
+          authDispatch({
               type: "LOGIN",
-              payload: resJson
+              payload: resJson.user,
+          })
+          gameListDispatch({
+            type: "LOAD",
+            payload: resJson.games,
           })
           handleClose(false);
-          setCookie('token', resJson.token, { path: '/' });
+          setCookie('token', resJson.user.token, { path: '/' });
         }
         else if (!resJson['user_id']) {
           // User not found
@@ -81,7 +87,7 @@ export function Login(props) {
     }
 
     const handleNewUser = () => {
-      dispatch({
+      authDispatch({
         type: 'PROFILE',
         payload: data,
       })
@@ -112,6 +118,12 @@ export function Login(props) {
             type = "email"
             fullWidth
             onChange = {handleChange("login")}
+            onKeyPress={(ev) => {
+              if (ev.key === 'Enter') {
+                  handleLogin();
+                  ev.preventDefault();
+              }
+            }}                    
           />
           <TextField
             margin = "dense"
@@ -121,6 +133,12 @@ export function Login(props) {
             type = "password"
             fullWidth
             onChange = {handleChange("password")}
+            onKeyPress={(ev) => {
+              if (ev.key === 'Enter') {
+                  handleLogin();
+                  ev.preventDefault();
+              }
+            }}                    
           />
         </DialogContent>
         <DialogActions>

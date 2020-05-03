@@ -28,7 +28,7 @@ import MsgBox from './MsgBox';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    maxWidth: 350,
+    minWidth: 200,
     display: 'flex',
     marginLeft: "5px",
     marginRight: "5px",
@@ -70,22 +70,24 @@ export default function GameCard(props) {
     const classes = useStyles();
     const game = props.game;
     const [auth] = React.useContext(AuthContext);
-    const [gameList, gameListDispatch] = React.useContext(GameListContext);
-    const [errorOpen, setErrorOpen] = React.useState(null);
+    const [, gameListDispatch] = React.useContext(GameListContext);
+    //const [errorOpen, setErrorOpen] = React.useState(null);
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (gameList.error) {
             setErrorOpen(gameList.error);
             gameList.error = null;
         };
-    }, [gameList.error]);
+    }, [gameList.error]);*/
 
     const next_title = game.status === "active" ? 
         GameDisplayMap["next_period"][game.period] : 
         GameDisplayMap["next_state"][game.status];
 
     const handleNameChange = (text) => {
-        gameListDispatch({type: 'CHANGE_NAME', payload: {id: game.id, name: text}});
+        game.name = text
+        Backend.updateGame({game_id: game.game_id, name: text});
+        gameListDispatch({type: 'CHANGE_NAME', payload: game});
     }
     const handleNextClick = () => {
         if (game.status === 'new' && !game.name ) {
@@ -99,25 +101,36 @@ export default function GameCard(props) {
     const handleStopClick = () => {
         gameListDispatch({type: 'STOP_GAME', payload: {id: game.id, }});
     }
-    const handleErrorClose = () => {
+    /*const handleErrorClose = () => {
         setErrorOpen(null);
-    }
+    }*/
 
   return (
     <Card className={classes.root}>
       <div className={classes.details}>
         <CardContent className={classes.content}>
-            {game.status !== "new" ? (
+            {game.status !== "new" || game.leader.user_id != auth.user_id
+            ? (
                 <Typography component="h5" variant="h5">
                     {game.name}
                 </Typography>
-            ) : (
+            )
+            : (
                 <TextField 
-                    id="name" 
-                    defaultValue={game.name} 
+                    id = "name"
+                    autoFocus
+                    margin = "dense"
+                    value = {game.name} 
                     placeholder="Game title" 
-                    size="small" 
-                    InputProps={{ classes }}
+                    size = "small" 
+                    InputProps = {{ classes }}
+                    onFocus={(ev) => {
+                        ev.target.select()
+                    }}
+                    onChange={(ev) => {
+                        game.name = ev.target.value;
+                        gameListDispatch({type: 'CHANGE_NAME', payload: game});
+                    }}
                     onKeyPress={(ev) => {
                         if (ev.key === 'Enter') {
                             handleNameChange(ev.target.value);
@@ -131,23 +144,43 @@ export default function GameCard(props) {
                 <TableBody>
                     <TableRow>
                         <TableCell>Leader</TableCell>
-                        <TableCell align="right">{game.leader.name}</TableCell>
+                        <TableCell align="right">
+                            <Typography variant="body2">
+                                {game.leader.name}
+                            </Typography>
+                        </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Started</TableCell>
-                        <TableCell align="right">{dateformat(game.started, 'dd.mm.yyyy HH:MM:ss')}</TableCell>
+                        <TableCell align="right">
+                            <Typography variant="body2" noWrap={true}>
+                                {dateformat(game.started, 'dd.mm.yyyy HH:MM:ss')}
+                            </Typography>
+                        </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Round</TableCell>
-                        <TableCell align="right">{game.round ? game.round : 'not started'}</TableCell>
+                        <TableCell align="right">
+                            <Typography variant="body2">
+                                {game.round ? game.round : 'not started'}
+                            </Typography>
+                        </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Status</TableCell>
-                        <TableCell align="right">{GameDisplayMap["state"][game.status]}</TableCell>
+                        <TableCell align="right">
+                            <Typography variant="body2">
+                                {GameDisplayMap["state"][game.status]}
+                            </Typography>
+                        </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Period</TableCell>
-                        <TableCell align="right">{game.period ? GameDisplayMap["period"][game.period] : 'not started'}</TableCell>
+                        <TableCell align="right">
+                            <Typography variant="body2">
+                                {game.period ? GameDisplayMap["period"][game.period] : 'not started'}
+                            </Typography>
+                        </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Members</TableCell>
@@ -179,7 +212,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="next" 
-                    disabled={game.status === "finish" || game.leader.id !== auth.id}
+                    disabled={game.status === "finish" || game.leader.user_id !== auth.user_id}
                     onClick={handleNextClick}>
                     <PlayCircleFilledWhiteOutlined/>
                 </IconButton>
@@ -196,7 +229,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={game.status !== "start" || game.leader.id === auth.id || Backend.checkInGame(game, auth)}
+                    disabled={game.status !== "start" || game.leader.user_id === auth.user_id}
                     onClick={handleJoinClick}>
                     <AddBoxOutlined/>
                 </IconButton>
@@ -205,18 +238,12 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="stop" 
-                    disabled={game.status === "finish" || game.leader.id !== auth.id}
+                    disabled={game.status === "finish" || game.leader.user_id !== auth.user_id}
                     onClick={handleStopClick}>
                     <Stop/>
                 </IconButton>
             </Tooltip>
         </CardActions>
-        <MsgBox open={errorOpen != null} 
-          severity = 'error'
-          autoHide = {3000}
-          message = {errorOpen}
-          onClose = {handleErrorClose}
-          />
       </div>
     </Card>
   );

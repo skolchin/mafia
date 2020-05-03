@@ -14,7 +14,7 @@ cors = CORS(app, allow_headers=["Content-Type", "Authorization", "Access-Control
 
 backend = Backend()
 
-class UserResource(Resource):
+class UserListResource(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('user_id', type=int, required=False)
@@ -22,7 +22,7 @@ class UserResource(Resource):
         args = parser.parse_args()
 
         if args.user_id is None and args.login is None:
-            return backend.users()
+            return backend.list_users()
         else:
             return backend.get_user(args.user_id, args.login)
 
@@ -34,6 +34,7 @@ class AuthResource(Resource):
         parser.add_argument('login', type=str, required=False)
         parser.add_argument('password', type=str, required=False)
         parser.add_argument('token', type=str, required=False)
+
         args = parser.parse_args()
         if args.a.lower() == 'login':
             return backend.login_user(args.login, args.password)
@@ -52,13 +53,48 @@ class UserAvatarResource(Resource):
         parser.add_argument('user_id', type=int, required=True)
         args = parser.parse_args()
         im, ctype = backend.get_avatar(args.user_id)
-        response = make_response(im)
-        response.headers['content-type'] = ctype
-        return response
+        if im is None:
+            return None
+        else:
+            response = make_response(im)
+            response.headers['content-type'] = ctype
+            return response
 
-#api.add_resource(UserResource, '/users')
+class GameResource(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('game_id', type=int, required=False)
+        parser.add_argument('user_id', type=int, required=False)
+        args = parser.parse_args()
+        if args.game_id is not None:
+            return backend.get_game(args.game_id)
+        elif args.user_id is not None:
+            return backend.list_games(args.user_id)
+        else:
+            return None
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('a', type=str, required=True)
+        parser.add_argument('game_id', type=int, required=False)
+        parser.add_argument('user_id', type=int, required=False)
+        parser.add_argument('state', type=str, required=False)
+
+        args = parser.parse_args()
+        if args.a.lower() == 'new':
+            return backend.add_game(args.user_id, '<New game>')
+        elif args.a.lower() == 'update':
+            state = json.loads(args.state)
+            print(state)
+            return backend.update_game(args.game_id, state)
+        else:
+            return None
+
+
+#api.add_resource(UserListResource, '/users')
 api.add_resource(AuthResource, '/auth')
-api.add_resource(UserAvatarResource, '/ua')
+api.add_resource(UserAvatarResource, '/a')
+api.add_resource(GameResource, '/g')
 
 if __name__ == '__main__':
     app.run(debug=True)

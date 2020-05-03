@@ -3,6 +3,7 @@ import { useCookies } from 'react-cookie';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { AuthContext } from './auth_reducer';
+import { GameListContext } from './game_list_reducer';
 import Backend from './backend';
 import GameDrawer from './Drawer';
 
@@ -15,18 +16,23 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Home(props) {
     const classes = useStyles();
-    const [state, dispatch] = React.useContext(AuthContext);
+    const [authState, authDispatch] = React.useContext(AuthContext);
+    const [, gameListDispatch] = React.useContext(GameListContext);
     const [cookies] = useCookies(['token']);
   
     const restoreSession = async () => {
-      if (cookies.token && !state.login && !state.token) {
+      if (cookies.token && !authState.login && !authState.token) {
         const response = await Backend.restoreSession(cookies.token);
         const resJson = await response.json();
-        if (resJson['valid']) {
+        if (resJson && resJson.user && resJson.user.valid) {
           // OK
-          dispatch({
+          authDispatch({
               type: "LOGIN",
-              payload: resJson
+              payload: resJson.user
+          })
+          gameListDispatch({
+            type: "LOAD",
+            payload: resJson.games,
           })
         }
       }
