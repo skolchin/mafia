@@ -25,7 +25,7 @@ const reducer = (state, action) => {
             };
 
         case "CHANGE_NAME":
-        case "NEXT_STATE":
+        case "CHANGE_STATE":
         case "STOP_GAME":
         case 'JOIN_GAME':
             return {

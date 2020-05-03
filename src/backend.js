@@ -119,36 +119,54 @@ export default class Backend {
             })
           })
     }
+    static nextGameState(values) {
+        return fetch('http://localhost:5000/g',  {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                a: "next_state",
+                game_id: values.game_id,
+            })
+          })
+    }
+    static stopGame(values) {
+        return fetch('http://localhost:5000/g',  {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                a: "stop",
+                game_id: values.game_id,
+            })
+          })
+    }
+    static joinGame(values) {
+        console.log(values);
+        return fetch('http://localhost:5000/g',  {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                a: "join",
+                game_id: values.game_id,
+                user_id: values.user_id,
+                role: values.role,
+            })
+          })
+    }
+
     static checkInGame(game, user) {
         let _login = user.login.toLowerCase();
         return game.members.some(item => item.login.toLowerCase() === _login);
     }
-    static joinGame(game, user, role_ = null) {
-        if (this.checkInGame(game, user)) 
-            throw new Error(user.login + " already registered to game " + game.name);
-        return {
-            ...game,
-            total: game.total + 1,
-            members: [...game.members, {...user, role: role_}]
-        }
-    }
     static leaveGame(game, user) {
         return true;        
-    }
-    static assignRoles(game) {
-        if (!game.members || game.members.length < 4)
-            throw new Error("Minimum 4 members required to start a game");
-        let mafiaTotal = (game.members.length - 1) // 3;
-        if (mafiaTotal < 1) mafiaTotal = 1;
-
-        let mafiaCount = 0;
-        game.members.forEach(item => {
-            if (item.role !== 'leader') {
-                let r = Math.round(Math.random());
-                item.role = (r === 0 && mafiaCount < mafiaTotal ? "mafia" : "citizen");
-                if (item.role === "mafia") mafiaCount += 1;
-            }
-        });
-        return game.members;
     }
 }

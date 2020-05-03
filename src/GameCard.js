@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import dateformat from 'dateformat';
 import { makeStyles } from '@material-ui/core/styles';
+
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
@@ -13,6 +14,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 import TextField from  '@material-ui/core/TextField';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import PlayCircleFilledWhiteOutlined from '@material-ui/icons/PlayCircleFilledWhiteOutlined';
 import Stop from '@material-ui/icons/Stop';
@@ -23,7 +25,6 @@ import { AuthContext } from './auth_reducer';
 import { GameListContext } from './game_list_reducer';
 import { GameDisplayMap } from './dict';
 import Backend from './backend';
-
 import MsgBox from './MsgBox';
 
 const useStyles = makeStyles((theme) => ({
@@ -71,45 +72,68 @@ export default function GameCard(props) {
     const game = props.game;
     const [auth] = React.useContext(AuthContext);
     const [, gameListDispatch] = React.useContext(GameListContext);
-    //const [errorOpen, setErrorOpen] = React.useState(null);
 
-    /*useEffect(() => {
-        if (gameList.error) {
-            setErrorOpen(gameList.error);
-            gameList.error = null;
-        };
-    }, [gameList.error]);*/
-
+    const initialState = {
+        isSubmitting: false,
+        errorMessage: null
+      };
+    const [data, setData] = React.useState(initialState);
+    
     const next_title = game.status === "active" ? 
         GameDisplayMap["next_period"][game.period] : 
         GameDisplayMap["next_state"][game.status];
 
+    const updateGame = (fun, new_game, change_type) => {
+        setData({
+            ...data,
+            isSubmitting: true
+        })
+        fun(new_game)
+        .then(res => {
+            if (res.ok) {
+                return res.json();
+            }
+            throw res;
+        })
+        .then(resJson => {
+            gameListDispatch({
+                type: change_type,
+                payload: resJson
+            })
+            setData({
+                ...data,
+                isSubmitting: false
+            })
+        })
+        .catch(error => {
+            setData({
+                ...data,
+                isSubmitting: false,
+                errorMessage: error.message || error.statusText
+            });
+        });
+    }
     const handleNameChange = (text) => {
-        game.name = text
-        Backend.updateGame({game_id: game.game_id, name: text});
-        gameListDispatch({type: 'CHANGE_NAME', payload: game});
+        updateGame(Backend.updateGame, {game_id: game.game_id, name: text}, 'CHANGE_NAME')
     }
     const handleNextClick = () => {
-        if (game.status === 'new' && !game.name ) {
-            handleNameChange('Game #' + (game.id +1).toString())
-        }
-        gameListDispatch({type: 'NEXT_STATE', payload: {id: game.id, }});
-    }
-    const handleJoinClick = () => {
-        gameListDispatch({type: 'JOIN_GAME', payload: {id: game.id, user: auth}});
+        updateGame(Backend.nextGameState, {game_id: game.game_id}, 'CHANGE_STATE')
     }
     const handleStopClick = () => {
-        gameListDispatch({type: 'STOP_GAME', payload: {id: game.id, }});
+        updateGame(Backend.stopGame, {game_id: game.game_id}, 'STOP_GAME')
     }
-    /*const handleErrorClose = () => {
-        setErrorOpen(null);
-    }*/
+    const handleJoinClick = () => {
+        updateGame(Backend.joinGame, {game_id: game.game_id, user_id: auth.user_id}, 'JOIN_GAME')
+    }
+    const handleErrorClose = () => {
+      setData({...data, errorMessage: null});
+    }
 
   return (
     <Card className={classes.root}>
       <div className={classes.details}>
         <CardContent className={classes.content}>
-            {game.status !== "new" || game.leader.user_id != auth.user_id
+            {game.status !== "new" || game.leader.user_id !== auth.user_id
             ? (
                 <Typography component="h5" variant="h5">
                     {game.name}
@@ -138,7 +162,7 @@ export default function GameCard(props) {
                         }
                       }}                    
                 />
-            )}            
+            )}
             <Divider />
             <Table className={classes.table} size="small">
                 <TableBody>
@@ -178,7 +202,7 @@ export default function GameCard(props) {
                         <TableCell>Period</TableCell>
                         <TableCell align="right">
                             <Typography variant="body2">
-                                {game.period ? GameDisplayMap["period"][game.period] : 'not started'}
+                                    {game.period ? GameDisplayMap["period"][game.period] : 'not started'}
                             </Typography>
                         </TableCell>
                     </TableRow>
@@ -186,7 +210,7 @@ export default function GameCard(props) {
                         <TableCell>Members</TableCell>
                         <TableCell align="right">
                             <Typography variant="body2" style={{fontSize: "small"}}>
-                                {"total: " + game.total}
+                                {"total: " + game.total[0].toString() + "/" +  game.total[1].toString()}
                                 <br />
                                 {"citizens: " + game.citizenState[0].toString() + "/" +  game.citizenState[1].toString()}
                                 <br />
@@ -212,16 +236,18 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="next" 
-                    disabled={game.status === "finish" || game.leader.user_id !== auth.user_id}
+                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== auth.user_id}
                     onClick={handleNextClick}>
-                    <PlayCircleFilledWhiteOutlined/>
+                    {data.isSubmitting 
+                        ? (<CircularProgress size={20} />) 
+                        : (<PlayCircleFilledWhiteOutlined/>)}
                 </IconButton>
             </Tooltip>
             <Tooltip title="Start voting">
                 <IconButton 
                     color="primary" 
                     aria-label="vote" 
-                    disabled={game.status !== "active" || game.voting !== "none"}>
+                    disabled={data.isSubmitting || game.status !== "active" || game.voting !== "none"}>
                     <PanToolOutlined/>
                 </IconButton>
             </Tooltip>
@@ -229,7 +255,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={game.status !== "start" || game.leader.user_id === auth.user_id}
+                    disabled={data.isSubmitting || game.status !== "start" || game.leader.user_id === auth.user_id}
                     onClick={handleJoinClick}>
                     <AddBoxOutlined/>
                 </IconButton>
@@ -238,12 +264,18 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="stop" 
-                    disabled={game.status === "finish" || game.leader.user_id !== auth.user_id}
+                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== auth.user_id}
                     onClick={handleStopClick}>
                     <Stop/>
                 </IconButton>
             </Tooltip>
         </CardActions>
+        <MsgBox open={data.errorMessage} 
+          severity = 'error'
+          message = {data.errorMessage}
+          autoHide = {3000}
+          onClose = {handleErrorClose}
+          />
       </div>
     </Card>
   );

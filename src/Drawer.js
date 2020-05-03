@@ -52,8 +52,6 @@ const useStyles = makeStyles((theme) => ({
   },
   appBarShift: {
     flexGrow: 1,
-    width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
@@ -152,6 +150,10 @@ export default function GameDrawer() {
       gameListDispatch({
           type: "NEW_GAME",
           payload: resJson
+      })
+      setData({
+        ...data,
+        isSubmitting: false,
       })
     })
     .catch(error => {
@@ -313,7 +315,7 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        {auth.login && data.selected >= 0 && (
+        {auth.login && gameList && data.selected >= 0 && (
           <GameCard game={gameList.games[data.selected]} />
         )}
       </main>

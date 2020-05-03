@@ -9,32 +9,13 @@ const reducer = (state, action) => {
               name: action.payload.name,
           }
 
-      case "NEXT_STATE":
-          switch(state.status) {
-            case 'new':
-                return {
-                    ...state, 
-                    status: 'start' 
-                };
-
-            case 'start':
-                return {
-                    ...state, 
-                    status: 'active', 
-                    period: 'day', 
-                    round: 1 
-                };
-
-            case 'active':
-                return {
-                    ...state, 
-                    period: state.period === 'day' ? 'night' : 'day',
-                    round: state.period === 'night' ? state.round + 1 : state.round,
-                };
-
-            default:
-                return state;
-          }
+      case "CHANGE_STATE":
+        return {
+            ...state,
+            status: action.payload.status,
+            period: action.payload.period,
+            round: action.payload.round,
+        }
 
       case "STOP_GAME":
         return {
@@ -43,8 +24,8 @@ const reducer = (state, action) => {
         };
 
         case 'JOIN_GAME':
-            return Backend.joinGame(state, action.payload.user, action.payload.role);
-    
+            return action.payload;
+        
         case 'ASSIGN_ROLES':
             return Backend.assignRoles(state);
     

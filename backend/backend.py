@@ -6,6 +6,7 @@ import sqlite3 as engine
 from datetime import datetime, timedelta
 import uuid
 import base64
+import random
 
 class Backend:
     MAFIA_DB = "C:\\Users\\kol\\Documents\\kol\\mafia\\mafia.db"
@@ -32,6 +33,7 @@ class Backend:
         tmp_props = props.copy()
         if key in tmp_props:
             tmp_props.pop(key)
+        print('Updating {}.{} = {}'.format(table, key, id))
 
         if id is None or id == 0:
             columns = ', '.join(tmp_props.keys())
@@ -148,7 +150,7 @@ class Backend:
             'where m.user_id = ? ' + \
             'union '
             'select g.game_id from games g ' + \
-            'where g.status == "new"',
+            'where g.status == "start"',
             [user_id]
         )
         return [self.get_game(d['game_id'], conn=conn) for d in cursor.fetchall()]
@@ -176,7 +178,7 @@ class Backend:
         if game is None:
             return game
 
-        cursor = conn.execute('select u.*, m.role from users u ' + \
+        cursor = conn.execute('select u.*, m.role, m.alive from users u ' + \
                               'inner join members m on m.user_id = u.user_id ' + \
                               'where m.game_id=?', [game_id])
         
@@ -198,30 +200,74 @@ class Backend:
         return game
 
     def update_game(self, game_id, props, conn=None):
+        conn = self.get_conn(conn)
         props['game_id'] = game_id
         print(props)
-        return self.generic_update('games', props, 'game_id', conn)
+        game_id = self.generic_update('games', props, 'game_id', conn)
+        return props
 
-    def update_game_members(self, game):
-        game_id = game['game_id']
-        if 'members' in game:
-            for m in game['members']:
-                member_props = {'game_id': game_id}
-                member_props.update(m)
-                self.generic_update('members', member_props)
-        return game_id
+    def next_state(self, game_id, conn=None):
+        conn = self.get_conn(conn)
+        cursor = conn.execute('select * from games where game_id=?', [game_id])
+        d = cursor.fetchone()
+        if d is None:
+            return None
+
+        state = {'game_id': game_id, 'status': d['status'], 'period': d['period'], 'round': d['round']}
+
+        if state['status'] == 'new':
+            state['status'] = 'start'
+        elif state['status'] == 'start':
+            state['status'] = 'active'
+            state['period'] = 'day'
+            state['round'] = 1
+
+            game = self.get_game(game_id)
+            if 'members' not in game or len(game['members']) < 4:       #one is leader
+                raise Exception("Minimum 3 members required to start a game")
+
+            mafiaTotal = (len(game['members']) - 1) // 3
+            mafiaCount = 0
+
+            for item in game['members']:
+                if item['role'] != 'leader':
+                    r = round(random.random())
+                    item['role'] = "mafia" if r == 0 and mafiaCount < mafiaTotal else "citizen"
+                    if item['role'] == "mafia":
+                        mafiaCount += 1
+                    conn.execute('UPDATE members SET role=? WHERE game_id=? and user_id=?',
+                                [item['role'], game_id, item['user_id']])
+
+            self.generic_update('games', state, 'game_id', conn)
+            return self.get_game(game_id, conn)
+
+        elif state['status'] == 'active' and state['period'] == 'day':
+            state['period'] = 'night'
+        elif state['status'] == 'active' and state['period'] == 'night':
+            state['period'] = 'day'
+            state['round'] += 1
+
+        self.generic_update('games', state, 'game_id', conn)
+        return state
+
+    def stop_game(self, game_id, conn=None):
+        conn = self.get_conn(conn)
+        cursor = conn.execute('select * from games where game_id=?', [game_id])
+        d = cursor.fetchone()
+        if d is None:
+            return None
+
+        state = {'game_id': game_id, 'status': 'finish'}
+        self.generic_update('games', state, 'game_id', conn)
+        return state
+
+    def join_game(self, game_id, user_id, role, conn=None):
+        self.generic_update('members', {'game_id': game_id, 'user_id': user_id, 'role': role})
+        return self.get_game(game_id)
 
 
 def main():
-    backend = Backend()
-    user = backend.get_user(1)
-    print(user)
-
-    games = backend.games(user['user_id'])
-    print(games)
-
-    #print(backend.update_game({'name': 'A', 'started': datetime.now(), 'leader': user}))
-
+    pass
 
 if __name__ == '__main__':
     main()
