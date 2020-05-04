@@ -4,20 +4,16 @@ import './App.css';
 import Home from './Home';
 import Profile from './Profile';
 
-import { AuthContext, AuthReducer } from './auth_reducer';
-import { GameListContext, GameListReducer } from './game_list_reducer';
+import { AppContext, AppReducer } from './app_context';
 
 function App() {
-  const [authState, authDispatch] = AuthReducer();
-  const [gameListState, gameListDispatch] = GameListReducer();
+  const [state, dispatch] = AppReducer();
 
   return (
       <div className="App">
-        <AuthContext.Provider value={[authState, authDispatch]}>
-          <GameListContext.Provider value={[gameListState, gameListDispatch]}>
-              {authState.profileOpening ? <Profile />  : <Home />}
-          </GameListContext.Provider>
-        </AuthContext.Provider>
+        <AppContext.Provider value={[state, dispatch]}>
+            {state.profileOpening ? <Profile />  : <Home />}
+        </AppContext.Provider>
       </div>
     );
 }

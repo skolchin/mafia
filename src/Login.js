@@ -11,14 +11,12 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import withMobileDialog from '@material-ui/core/withMobileDialog';
 
-import { AuthContext } from './auth_reducer';
-import { GameListContext } from './game_list_reducer';
+import { AppContext } from './app_context';
 import Backend from './backend';
-import MsgBox from './MsgBox';
+import InfoBar from './InfoBar';
 
 export function Login(props) {
-    const [, authDispatch] = React.useContext(AuthContext);
-    const [, gameListDispatch] = React.useContext(GameListContext);
+    const [state, dispatch] = React.useContext(AppContext);
     const [toastOpen, setToastOpen] = React.useState(false);
     const [, setCookie] = useCookies(['token']);
 
@@ -31,7 +29,10 @@ export function Login(props) {
     const [data, setData] = React.useState(initialState);
   
     const handleChange = name => event => {
-      setData({ ...data, [name]: event.target.value, errorMessage: null });
+      setData({
+        ...data, 
+        [name]: event.target.value, errorMessage: null
+      });
       setToastOpen(false);
     };
     const handleLogin = () => {
@@ -49,18 +50,14 @@ export function Login(props) {
       .then(resJson => {
         if (resJson.user && resJson.user.token) {
           // OK
-          authDispatch({
-              type: "LOGIN",
-              payload: resJson.user,
-          })
-          gameListDispatch({
-            type: "LOAD",
-            payload: resJson.games,
+          dispatch({
+              type: "LOAD",
+              payload: resJson,
           })
           handleClose(false);
           setCookie('token', resJson.user.token, { path: '/' });
         }
-        else if (!resJson['user_id']) {
+        else if (!resJson.user_id) {
           // User not found
           setData({
             ...data,
@@ -87,7 +84,7 @@ export function Login(props) {
     }
 
     const handleNewUser = () => {
-      authDispatch({
+      dispatch({
         type: 'PROFILE',
         payload: data,
       })
@@ -153,7 +150,7 @@ export function Login(props) {
           </Button>
         </DialogActions>
 
-        <MsgBox open={toastOpen} 
+        <InfoBar open={toastOpen} 
           severity = 'info'
           message = {'Login ' + data.login + ' not found. Register?'}
           action = "OK"
@@ -161,7 +158,7 @@ export function Login(props) {
           onClick = {handleNewUser}
           />
 
-        <MsgBox open={data.errorMessage} 
+        <InfoBar open={data.errorMessage} 
           severity = 'error'
           message = {data.errorMessage}
           autoHide = {3000}

@@ -28,13 +28,12 @@ import Adjust from '@material-ui/icons/Adjust';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import { AuthContext } from './auth_reducer';
-import { GameListContext } from './game_list_reducer';
+import { AppContext } from './app_context';
 import { GameDisplayMap } from './dict';
 import Backend from './backend';
 import Login from './Login';
 import GameCard from './GameCard';
-import MsgBox from './MsgBox';
+import InfoBar from './InfoBar';
 
 const drawerWidth = 320;
 
@@ -108,8 +107,7 @@ export default function GameDrawer() {
   const classes = useStyles();
   const theme = useTheme();
   const [drawerOpen, setOpen] = React.useState(true);
-  const [auth, authDispatch] = React.useContext(AuthContext);
-  const [gameList, gameListDispatch] = React.useContext(GameListContext);
+  const [state, dispatch] = React.useContext(AppContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [loginOpen, setLoginOpen] = React.useState(false);
   const menuOpen = Boolean(anchorEl);
@@ -139,7 +137,7 @@ export default function GameDrawer() {
       ...data,
       isSubmitting: true
     })
-    Backend.newGame(auth)
+    Backend.newGame(state.user)
     .then(res => {
       if (res.ok) {
         return res.json();
@@ -147,7 +145,7 @@ export default function GameDrawer() {
       throw res;
     })
     .then(resJson => {
-      gameListDispatch({
+      dispatch({
           type: "NEW_GAME",
           payload: resJson
       })
@@ -176,14 +174,14 @@ export default function GameDrawer() {
   }
   const handleProfile = () => {
     handleMenuClose();
-    authDispatch({type: 'PROFILE', payload: auth,})
+    dispatch({type: 'PROFILE', payload: state.user})
   }
   const handleLogout = () => {
     handleMenuClose();
-    Backend.logoutUser(auth);
+    Backend.logoutUser(state.user);
     setCookie('token', null, { path: '/' });
     removeCookie('token', { path: '/' })
-    authDispatch({type: 'LOGOUT', payload: auth,})
+    dispatch({type: 'LOGOUT', payload: state.user})
   }
   const handleErrorClose = () => {
     setData({...data, errorMessage: null});
@@ -212,7 +210,7 @@ export default function GameDrawer() {
             Mafia!
           </Typography>
           <div>
-            <Tooltip title={(auth && auth.login ? auth.name : "Not logged in")}>
+            <Tooltip title={(state.user && state.user.login ? state.user.name : "Not logged in")}>
               <IconButton
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
@@ -220,9 +218,9 @@ export default function GameDrawer() {
                 onClick={handleMenu}
                 color="inherit"
               >
-                {auth.login
-                ? (<Avatar color="inherit" src={Backend.avatarURL(auth)} className={classes.appBarAvatar}>
-                    {!auth.has_avatar ? Backend.nameInitials(auth) : null}
+                {state.user.login
+                ? (<Avatar color="inherit" src={Backend.avatarURL(state.user)} className={classes.appBarAvatar}>
+                    {!state.user.has_avatar ? Backend.nameInitials(state.user) : null}
                   </Avatar>
                 )
               : (
@@ -249,17 +247,17 @@ export default function GameDrawer() {
               open={menuOpen}
               onClose={handleMenuClose}
             >
-              {!auth.login && (
+              {!state.user.login && (
                 <MenuItem onClick={handleLogin}>
                   Login
                 </MenuItem>
               )}
-              {auth.login && (
+              {state.user.login && (
                 <MenuItem onClick={handleProfile}>
                   Profile
                 </MenuItem>
               )}
-              {auth.login && (
+              {state.user.login && (
                 <MenuItem onClick={handleLogout}>
                   Logout
                 </MenuItem>
@@ -282,7 +280,7 @@ export default function GameDrawer() {
           </IconButton>
         </div>
         <Divider />
-          {auth.login && (
+          {state.user.login && (
             <List>
               <ListItem button key="new" disabled={data.isSubmitting} onClick={handleNewGame}>
                 <ListItemIcon>
@@ -291,7 +289,7 @@ export default function GameDrawer() {
                 <ListItemText primary="New game" />
               </ListItem>
 
-              {gameList.games.map((item, index) => (
+              {state.games.map((item, index) => (
                 <ListItem button key={item.id} disabled={data.isSubmitting} onClick={(e) => handleGameSel(index)}>
                   <ListItemIcon>
                     {item.status !== "finish"
@@ -315,13 +313,13 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        {auth.login && gameList && data.selected >= 0 && (
-          <GameCard game={gameList.games[data.selected]} />
+        {state.user.login && data.selected >= 0 && data.selected < state.games.length && (
+          <GameCard game={state.games[data.selected]} />
         )}
       </main>
 
       <Login open={loginOpen} onClose={setLoginOpen} />
-      <MsgBox open={data.errorMessage} 
+      <InfoBar open={data.errorMessage} 
           severity = 'error'
           message = {data.errorMessage}
           autoHide = {3000}

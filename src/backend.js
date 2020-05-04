@@ -19,16 +19,24 @@ const emptyUser = {
     login: null,
     token: null,
     name: null,
-    profileOpening: false,
 };
 
 const emptyGameList = {
     games: [],
 };
 
+const initialAppState = {
+    user: emptyUser,
+    games: emptyGameList,
+    profileOpening: false,
+}
 
 export default class Backend {
     static lastGameId = 0;
+
+    static initialState() {
+        return initialAppState;
+    }
 
     static emptyUser() {
         return emptyUser;

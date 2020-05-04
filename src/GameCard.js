@@ -21,11 +21,10 @@ import Stop from '@material-ui/icons/Stop';
 import AddBoxOutlined from '@material-ui/icons/AddBoxOutlined';
 import PanToolOutlined from '@material-ui/icons/PanToolOutlined';
 
-import { AuthContext } from './auth_reducer';
-import { GameListContext } from './game_list_reducer';
+import { AppContext } from './app_context';
 import { GameDisplayMap } from './dict';
 import Backend from './backend';
-import MsgBox from './MsgBox';
+import InfoBar from './InfoBar';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -70,8 +69,7 @@ const useStyles = makeStyles((theme) => ({
 export default function GameCard(props) {
     const classes = useStyles();
     const game = props.game;
-    const [auth] = React.useContext(AuthContext);
-    const [, gameListDispatch] = React.useContext(GameListContext);
+    const [state, dispatch] = React.useContext(AppContext);
 
     const initialState = {
         isSubmitting: false,
@@ -96,7 +94,7 @@ export default function GameCard(props) {
             throw res;
         })
         .then(resJson => {
-            gameListDispatch({
+            dispatch({
                 type: change_type,
                 payload: resJson
             })
@@ -123,7 +121,7 @@ export default function GameCard(props) {
         updateGame(Backend.stopGame, {game_id: game.game_id}, 'STOP_GAME')
     }
     const handleJoinClick = () => {
-        updateGame(Backend.joinGame, {game_id: game.game_id, user_id: auth.user_id}, 'JOIN_GAME')
+        updateGame(Backend.joinGame, {game_id: game.game_id, user_id: state.user.user_id}, 'JOIN_GAME')
     }
     const handleErrorClose = () => {
       setData({...data, errorMessage: null});
@@ -133,7 +131,7 @@ export default function GameCard(props) {
     <Card className={classes.root}>
       <div className={classes.details}>
         <CardContent className={classes.content}>
-            {game.status !== "new" || game.leader.user_id !== auth.user_id
+            {game.status !== "new" || game.leader.user_id !== state.user.user_id
             ? (
                 <Typography component="h5" variant="h5">
                     {game.name}
@@ -153,7 +151,7 @@ export default function GameCard(props) {
                     }}
                     onChange={(ev) => {
                         game.name = ev.target.value;
-                        gameListDispatch({type: 'CHANGE_NAME', payload: game});
+                        dispatch({type: 'CHANGE_NAME', payload: game});
                     }}
                     onKeyPress={(ev) => {
                         if (ev.key === 'Enter') {
@@ -236,7 +234,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="next" 
-                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== auth.user_id}
+                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
                     onClick={handleNextClick}>
                     {data.isSubmitting 
                         ? (<CircularProgress size={20} />) 
@@ -255,7 +253,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={data.isSubmitting || game.status !== "start" || game.leader.user_id === auth.user_id}
+                    disabled={data.isSubmitting || game.status !== "start" || game.leader.user_id === state.user.user_id}
                     onClick={handleJoinClick}>
                     <AddBoxOutlined/>
                 </IconButton>
@@ -264,13 +262,13 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="stop" 
-                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== auth.user_id}
+                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
                     onClick={handleStopClick}>
                     <Stop/>
                 </IconButton>
             </Tooltip>
         </CardActions>
-        <MsgBox open={data.errorMessage} 
+        <InfoBar open={data.errorMessage} 
           severity = 'error'
           message = {data.errorMessage}
           autoHide = {3000}

@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function MessageBox(props) {
+export default function InfoBar(props) {
   const classes = useStyles();
   const _props = {
     ...props,
