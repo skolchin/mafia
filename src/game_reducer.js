@@ -1,6 +1,3 @@
-import React from 'react';
-import Backend from './backend';
-
 const reducer = (state, action) => {
     switch (action.type) {
       case "CHANGE_NAME":

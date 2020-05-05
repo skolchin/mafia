@@ -19,7 +19,9 @@ export default function Home(props) {
     const [cookies] = useCookies(['token']);
   
     const restoreSession = async () => {
-      if (cookies.token && !state.login && !state.user.token) {
+      if (cookies.token && !state.user.token && !state.isLoading) {
+        state.isLoading = true;
+        console.log('Restoring session');
         const response = await fetch(Backend.AUTH_URL,  {
             method: "POST",
             headers: {
@@ -38,11 +40,18 @@ export default function Home(props) {
               type: "LOAD",
               payload: resJson
           })
+          let eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + state.user_id);
+          eventSource.onmessage = e => {
+            dispatch({
+              type: 'MESSAGES',
+              payload: JSON.parse(e.data),
+            })
+          }
         }
       }
     }
-
     restoreSession();
+
     return(
         <div className={classes.root}>
           <GameDrawer />

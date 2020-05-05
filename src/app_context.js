@@ -6,6 +6,16 @@ const callGameReducer = (state, action) => {
     return state.games.map(g => (g.game_id === action.payload.game_id ? gameReducer(g, action) : g));
 }
 
+const parseGameMessages = (state, messages) => {
+    return state.games.map(g => {
+        for(let i = 0; i < messages.length; i++) {
+            if (messages[i].type === 'game_update' && messages[i].game_id === g.game_id)
+                return messages.data
+        }
+        return g
+    })
+}
+
 const reducer = (state, action) => {
     switch (action.type) {
         case 'LOGIN':
@@ -49,6 +59,12 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 games: callGameReducer(state, action),
+            }
+
+        case 'MESSAGES':
+            return {
+                ...state,
+                games: parseGameMessages(state, action.payload),
             }
 
         default:

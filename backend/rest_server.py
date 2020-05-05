@@ -1,11 +1,13 @@
 import sys
 import os
 import json
-from backend import Backend
-
-from flask import Flask, Request, jsonify, request, make_response
+from flask import Flask, Request, Response, jsonify, request, make_response, copy_current_request_context
 from flask_restful import reqparse, abort, Api, Resource
 from flask_cors import CORS, cross_origin
+from time import sleep
+from datetime import datetime
+
+from backend import Backend
 
 app = Flask(__name__, static_folder='public')
 app.config['JSON_AS_ASCII'] = False
@@ -80,8 +82,8 @@ class GameResource(Resource):
         parser.add_argument('user_id', type=int, required=False)
         parser.add_argument('state', type=str, required=False)
         parser.add_argument('role', type=str, required=False)
-
         args = parser.parse_args()
+
         if args.a.lower() == 'new':
             return backend.add_game(args.user_id, '<New game>')
         elif args.a.lower() == 'update':
@@ -95,11 +97,36 @@ class GameResource(Resource):
         else:
             return None
 
+class MessageResource(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('user_id', type=str, required=True)
+        args = parser.parse_args()
+
+        @copy_current_request_context
+        def eventStream():
+            ts = datetime.now()
+            while(True):
+                sleep(5)
+                msg = backend.checkUpdates(ts, args.user_id)
+                ts = datetime.now()
+                if msg is not None and len(msg) > 0:
+                    yield json.dumps(msg, ensure_ascii=False, indent=4, sort_keys=False)
+
+        return Response(
+            eventStream(), 
+            headers={
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            }
+        )
 
 #api.add_resource(UserListResource, '/users')
 api.add_resource(AuthResource, '/auth')
 api.add_resource(UserAvatarResource, '/a')
 api.add_resource(GameResource, '/g')
+api.add_resource(MessageResource, '/m')
 
 if __name__ == '__main__':
     app.run(debug=True)

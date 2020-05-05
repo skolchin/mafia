@@ -16,7 +16,7 @@ import Backend from './backend';
 import InfoBar from './InfoBar';
 
 export function Login(props) {
-    const [state, dispatch] = React.useContext(AppContext);
+    const [, dispatch] = React.useContext(AppContext);
     const [toastOpen, setToastOpen] = React.useState(false);
     const [, setCookie] = useCookies(['token']);
 

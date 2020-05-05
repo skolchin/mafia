@@ -3,6 +3,7 @@ export default class Backend {
     static AUTH_URL = this.HOST + '/auth';
     static AVATAR_URL = this.HOST + '/a';
     static GAMES_URL = this.HOST + '/g';
+    static MESSAGES_URL = this.HOST + '/m';
 
     static INITIAL_USER_STATE = {
         user_id: null,
@@ -26,7 +27,6 @@ export default class Backend {
         members: []
     }
     static INITIAL_MESSAGE_STATE = {
-        message_id: null,
         user_id: null,
         game_id: null,
         type: null,
