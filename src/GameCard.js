@@ -15,11 +15,14 @@ import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 import TextField from  '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Container from '@material-ui/core/Container';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 
 import PlayCircleFilledWhiteOutlined from '@material-ui/icons/PlayCircleFilledWhiteOutlined';
 import Stop from '@material-ui/icons/Stop';
 import AddBoxOutlined from '@material-ui/icons/AddBoxOutlined';
 import PanToolOutlined from '@material-ui/icons/PanToolOutlined';
+import CreateOutlined from '@material-ui/icons/CreateOutlined';
 
 import { AppContext } from './app_context';
 import { GameDisplayMap } from './dict';
@@ -40,6 +43,11 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flex: '1 0 auto',
+  },
+  header: {
+    display: 'flex',
+    width: '100%',
+    alignItems: 'center',
   },
   actions: {
     display: 'flex',
@@ -72,6 +80,8 @@ export default function GameCard(props) {
     const [state, dispatch] = React.useContext(AppContext);
 
     const initialState = {
+        name: "",
+        isEditing: false,
         isSubmitting: false,
         errorMessage: null
       };
@@ -81,12 +91,13 @@ export default function GameCard(props) {
         GameDisplayMap["next_period"][game.period] : 
         GameDisplayMap["next_state"][game.status];
 
-    const updateGame = (fun, new_game, change_type) => {
+    const updateGame = (request, change_type) => {
         setData({
             ...data,
+            isEditing: false,
             isSubmitting: true
         })
-        fun(new_game)
+        fetch(Backend.GAMES_URL, request)
         .then(res => {
             if (res.ok) {
                 return res.json();
@@ -111,17 +122,109 @@ export default function GameCard(props) {
             });
         });
     }
+    const handleClickAway = () => {
+        setData({
+            ...data, 
+            name: game.name,
+            isEditing: false,
+        })
+    }
+    const handleNameEdit = () => {
+        setData({
+            ...data, 
+            name: game.name,
+            isEditing: true,
+        })
+    }
     const handleNameChange = (text) => {
-        updateGame(Backend.updateGame, {game_id: game.game_id, name: text}, 'CHANGE_NAME')
+        setData({
+            ...data, 
+            name: text,
+        })
+    }
+    const handleNameUpdate = (text) => {
+        game.name = text;
+        setData({
+            ...data, 
+            isEditing: false,
+            isSubmitting: true,
+        });
+        fetch(Backend.GAMES_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    a: "update",
+                    game_id: game.game_id,
+                    state: JSON.stringify({name: text}),
+                })
+            })
+        .then(res => {
+            if (res.ok) {
+                return res.json();
+            }
+            throw res;
+        })
+        .then(resJson => {
+            dispatch({
+                type: 'CHANGE_NAME',
+                payload: resJson
+            })
+            setData({
+                ...data,
+                isSubmitting: false,
+                isEditing: false,
+            })
+        })
+        .catch(error => {
+            setData({
+                ...data,
+                isSubmitting: false,
+                isEditing: false,
+                errorMessage: error.message || error.statusText
+            });
+        });
     }
     const handleNextClick = () => {
-        updateGame(Backend.nextGameState, {game_id: game.game_id}, 'CHANGE_STATE')
+        updateGame(
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    a: "next_state",
+                    game_id: game.game_id,
+                })
+            },
+            'CHANGE_STATE')
     }
     const handleStopClick = () => {
-        updateGame(Backend.stopGame, {game_id: game.game_id}, 'STOP_GAME')
+        updateGame(
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    a: "stop",
+                    game_id: game.game_id,
+                })
+            },
+            'STOP_GAME')
     }
     const handleJoinClick = () => {
-        updateGame(Backend.joinGame, {game_id: game.game_id, user_id: state.user.user_id}, 'JOIN_GAME')
+        updateGame(
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    a: "join",
+                    game_id: game.game_id,
+                    user_id: state.user.user_id,
+                    role: null,
+                })
+            }, 
+            'JOIN_GAME')
     }
     const handleErrorClose = () => {
       setData({...data, errorMessage: null});
@@ -131,35 +234,45 @@ export default function GameCard(props) {
     <Card className={classes.root}>
       <div className={classes.details}>
         <CardContent className={classes.content}>
-            {game.status !== "new" || game.leader.user_id !== state.user.user_id
+            {!data.isEditing
             ? (
-                <Typography component="h5" variant="h5">
-                    {game.name}
-                </Typography>
+                <Container className={classes.header}>
+                    <Typography component="h5" variant="h5" >
+                        {game.name}
+                    </Typography>
+                    <IconButton 
+                        color="inherited" 
+                        size="small"
+                        disabled={game.status !== "new" || game.leader.user_id !== state.user.user_id}
+                        onClick={handleNameEdit}>
+                        <CreateOutlined/>
+                    </IconButton>
+                </Container>
             )
             : (
-                <TextField 
-                    id = "name"
-                    autoFocus
-                    margin = "dense"
-                    value = {game.name} 
-                    placeholder="Game title" 
-                    size = "small" 
-                    InputProps = {{ classes }}
-                    onFocus={(ev) => {
-                        ev.target.select()
-                    }}
-                    onChange={(ev) => {
-                        game.name = ev.target.value;
-                        dispatch({type: 'CHANGE_NAME', payload: game});
-                    }}
-                    onKeyPress={(ev) => {
-                        if (ev.key === 'Enter') {
-                            handleNameChange(ev.target.value);
-                            ev.preventDefault();
-                        }
-                      }}                    
-                />
+                <ClickAwayListener onClickAway={handleClickAway}>
+                    <TextField 
+                        id = "name"
+                        autoFocus
+                        margin = "dense"
+                        value = {data.name} 
+                        placeholder="Game title" 
+                        size = "small" 
+                        InputProps = {{ classes }}
+                        onFocus={(ev) => {
+                            ev.target.select()
+                        }}
+                        onChange={(ev) => {
+                            handleNameChange(ev.target.value)
+                        }}
+                        onKeyPress={(ev) => {
+                            if (ev.key === 'Enter') {
+                                handleNameUpdate(ev.target.value);
+                                ev.preventDefault();
+                            }
+                        }}                    
+                    />
+                </ClickAwayListener>
             )}
             <Divider />
             <Table className={classes.table} size="small">

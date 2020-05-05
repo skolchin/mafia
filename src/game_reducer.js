@@ -26,14 +26,9 @@ const reducer = (state, action) => {
         case 'JOIN_GAME':
             return action.payload;
         
-        case 'ASSIGN_ROLES':
-            return Backend.assignRoles(state);
-    
       default:
           return state;
   }
 }
 
-export const GameContext = React.createContext(Backend.emptyGame());
-export const GameReducer = () => React.useReducer(reducer, Backend.emptyGame());
 export default reducer;

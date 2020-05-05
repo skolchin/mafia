@@ -137,7 +137,16 @@ export default function GameDrawer() {
       ...data,
       isSubmitting: true
     })
-    Backend.newGame(state.user)
+    fetch(Backend.GAMES_URL,  {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+          a: "new",
+          user_id: state.user.user_id,
+          name: '<New game>'
+      })
+    })
     .then(res => {
       if (res.ok) {
         return res.json();
@@ -178,7 +187,16 @@ export default function GameDrawer() {
   }
   const handleLogout = () => {
     handleMenuClose();
-    Backend.logoutUser(state.user);
+    fetch(Backend.AUTH_URL,  {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+          a: "logout",
+          user_id: state.user.user_id,
+          token: state.user.token
+      })
+    })
     setCookie('token', null, { path: '/' });
     removeCookie('token', { path: '/' })
     dispatch({type: 'LOGOUT', payload: state.user})

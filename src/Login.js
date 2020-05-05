@@ -40,7 +40,16 @@ export function Login(props) {
         ...data,
         isSubmitting: true
       })
-      Backend.loginUser(data)
+      fetch(Backend.AUTH_URL,  {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "same-origin",
+        body: JSON.stringify({
+            a: "login",
+            login: data.login,
+            password: data.password
+        })
+      })
       .then(res => {
         if (res.ok) {
           return res.json();

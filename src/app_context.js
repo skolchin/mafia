@@ -17,7 +17,7 @@ const reducer = (state, action) => {
         case 'LOGOUT':
             return {
                 ...state,
-                user: Backend.emptyUser(),
+                user: Backend.INITIAL_USER_STATE,
             }
   
         case 'PROFILE':
@@ -56,6 +56,6 @@ const reducer = (state, action) => {
     }
 }
 
-export const AppContext = React.createContext(Backend.initialState());
-export const AppReducer = () => React.useReducer(reducer, Backend.initialState());
+export const AppContext = React.createContext(Backend.INITIAL_APP_STATE);
+export const AppReducer = () => React.useReducer(reducer, Backend.INITIAL_APP_STATE);
 

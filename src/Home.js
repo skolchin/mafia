@@ -20,7 +20,17 @@ export default function Home(props) {
   
     const restoreSession = async () => {
       if (cookies.token && !state.login && !state.user.token) {
-        const response = await Backend.restoreSession(cookies.token);
+        const response = await fetch(Backend.AUTH_URL,  {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                a: "restore",
+                token: cookies.token
+            })
+          })
         const resJson = await response.json();
         if (resJson && resJson.user && resJson.user.valid) {
           // OK
