@@ -20,7 +20,7 @@ class Backend:
 
     def get_conn(self, conn=None):
         if conn is None:
-            conn = engine.connect(self.MAFIA_DB)
+            conn = engine.connect(self.MAFIA_DB)    #pylint: disable=no-member
             conn.row_factory = self.dict_factory
         return conn
 
@@ -319,7 +319,7 @@ class Backend:
             'sent': d['ts'],
             'data': self.get_game(d['game_id'])} for d in cursor.fetchall()]
         print("Updates since {}: {}".format(since, len(messages)))
-        return messages;
+        return messages
 
 
 def main():
