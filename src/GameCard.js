@@ -241,7 +241,7 @@ export default function GameCard(props) {
                         {game.name}
                     </Typography>
                     <IconButton 
-                        color="inherited" 
+                        color="inherit" 
                         size="small"
                         disabled={game.status !== "new" || game.leader.user_id !== state.user.user_id}
                         onClick={handleNameEdit}>
@@ -344,15 +344,17 @@ export default function GameCard(props) {
         </CardContent>
         <CardActions>
             <Tooltip title={next_title}>
-                <IconButton 
-                    color="primary" 
-                    aria-label="next" 
-                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
-                    onClick={handleNextClick}>
-                    {data.isSubmitting 
-                        ? (<CircularProgress size={20} />) 
-                        : (<PlayCircleFilledWhiteOutlined/>)}
-                </IconButton>
+                <span>
+                    <IconButton 
+                        color="primary" 
+                        aria-label="next" 
+                        disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
+                        onClick={handleNextClick}>
+                        {data.isSubmitting 
+                            ? (<CircularProgress size={20} />) 
+                            : (<PlayCircleFilledWhiteOutlined/>)}
+                    </IconButton>
+                    </span>
             </Tooltip>
             <Tooltip title="Start voting">
                 <IconButton 

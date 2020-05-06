@@ -6,6 +6,7 @@ from flask_restful import reqparse, abort, Api, Resource
 from flask_cors import CORS, cross_origin
 from time import sleep
 from datetime import datetime
+from urllib.parse import quote_plus
 
 from backend import Backend
 
@@ -102,16 +103,31 @@ class MessageResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('user_id', type=str, required=True)
         args = parser.parse_args()
+        last_ts = request.headers.get('Last-Event-ID')
+        print(last_ts)
 
-        @copy_current_request_context
+        #@copy_current_request_context
         def eventStream():
-            ts = datetime.now()
+            ts = last_ts if last_ts is not None else datetime.now()
             while(True):
                 sleep(5)
-                msg = backend.checkUpdates(ts, args.user_id)
+                #yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
+                #    "hello, world!",
+                #     quote_plus(str(ts))
+                #)
+                #print("Message " + quote_plus(str(ts)))
+                games = backend.checkUpdates(ts, args.user_id)
+                #games = ['1']
                 ts = datetime.now()
-                if msg is not None and len(msg) > 0:
-                    yield json.dumps(msg, ensure_ascii=False, indent=4, sort_keys=False)
+                if games is None or len(games) == 0:
+                    yield 'event: ping\ndata: \n\n'
+                else:
+                    for g in games:
+                        print("Message " + quote_plus(str(ts)))
+                        yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
+                            json.dumps(g, ensure_ascii=False),
+                            quote_plus(str(ts))
+                        )
 
         return Response(
             eventStream(), 

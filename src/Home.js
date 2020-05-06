@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -32,7 +32,7 @@ export default function Home(props) {
                 a: "restore",
                 token: cookies.token
             })
-          })
+        })
         const resJson = await response.json();
         if (resJson && resJson.user && resJson.user.valid) {
           // OK
@@ -40,17 +40,89 @@ export default function Home(props) {
               type: "LOAD",
               payload: resJson
           })
-          let eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + state.user_id);
-          eventSource.onmessage = e => {
-            dispatch({
-              type: 'MESSAGES',
-              payload: JSON.parse(e.data),
-            })
+          if (!Backend.eventSource) {
+            console.log('New event source')
+            Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user.user_id);
+            Backend.eventSource.addEventListener(
+              'game_update',
+              e => {
+                console.log('Got event: ' + e.lastEventId);
+                //dispatch({
+                //  type: 'MESSAGES',
+                //  payload: JSON.parse(e.data),
+                //})
+              }
+            )
           }
         }
       }
     }
-    restoreSession();
+    const restoreSessionAsync = () => {
+      if (cookies.token && !state.user.token && !state.isLoading) {
+        state.isLoading = true;
+        console.log('Restoring session');
+        fetch(Backend.AUTH_URL,  {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+              a: "restore",
+              token: cookies.token
+          })
+        })
+        .then(res => {
+          if (res.ok) {
+            return res.json();
+          }
+          throw res;
+        })
+        .then(resJson => {
+          if (resJson && resJson.user && resJson.user.valid) {
+            // OK
+            dispatch({
+              type: "LOAD",
+              payload: resJson,
+            })
+
+            if (!Backend.eventSource) {
+              console.log('New event source')
+              Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user.user_id);
+              Backend.eventSource.addEventListener(
+                'game_update',
+                e => {
+                  console.log('Got event: ' + e.lastEventId);
+                  //dispatch({
+                  //  type: 'MESSAGES',
+                  //  payload: JSON.parse(e.data),
+                  //})
+                }
+              )
+            }
+          }
+        })
+      }
+    }
+    useEffect(() => {
+      restoreSessionAsync();
+      window.addEventListener("beforeunload", (ev) => {
+        console.log("unloading");
+        ev.preventDefault();
+        if (Backend.eventSource) {
+          Backend.eventSource.close();
+          Backend.eventSource = null;
+        }
+      });
+
+      return () => {
+        console.log("unmounting");
+        if (Backend.eventSource) {
+          Backend.eventSource.close();
+          Backend.eventSource = null;
+        }
+      }
+    }, [dispatch])
 
     return(
         <div className={classes.root}>

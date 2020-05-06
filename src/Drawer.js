@@ -308,7 +308,7 @@ export default function GameDrawer() {
               </ListItem>
 
               {state.games.map((item, index) => (
-                <ListItem button key={item.id} disabled={data.isSubmitting} onClick={(e) => handleGameSel(index)}>
+                <ListItem button key={index} disabled={data.isSubmitting} onClick={(e) => handleGameSel(index)}>
                   <ListItemIcon>
                     {item.status !== "finish"
                       ? (<Adjust />)

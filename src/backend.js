@@ -41,6 +41,8 @@ export default class Backend {
         profileOpening: false,
     };
 
+    static eventSource = null;
+
     static avatarURL(values) {
         return this.AVATAR_URL + '?user_id=' + values.user_id.toString()
     }

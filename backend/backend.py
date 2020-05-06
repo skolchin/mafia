@@ -312,14 +312,9 @@ class Backend:
             'where g.modified > :since or m.created > :since or m.modified > :since',
             {'user_id': user_id, 'since': since}
         )
-        messages= [{
-            'type': 'game_update',
-            'user_id': user_id,
-            'game_id': d['game_id'],
-            'sent': d['ts'],
-            'data': self.get_game(d['game_id'])} for d in cursor.fetchall()]
-        print("Updates since {}: {}".format(since, len(messages)))
-        return messages
+        games = [self.get_game(d['game_id']) for d in cursor.fetchall()]
+        print("Updates since {}: {}".format(since, len(games)))
+        return games
 
 
 def main():

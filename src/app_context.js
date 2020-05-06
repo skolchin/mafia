@@ -62,10 +62,11 @@ const reducer = (state, action) => {
             }
 
         case 'MESSAGES':
-            return {
-                ...state,
-                games: parseGameMessages(state, action.payload),
-            }
+            return state;
+            //return {
+            //    ...state,
+            //    games: parseGameMessages(state, action.payload),
+            //}
 
         default:
             return state;
