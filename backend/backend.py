@@ -8,8 +8,11 @@ import uuid
 import base64
 import random
 
-def now_str():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+def dt_to_str(dt=datetime.now()):
+    return dt.strftime('%Y-%m-%d %H:%M:%S') if dt is not None else None
+
+def dt_from_str(s):
+    return datetime.strptime(s, '%Y-%m-%d %H:%M:%S') if s is not None else None
 
 class Backend:
     MAFIA_DB = "C:\\Users\\kol\\Documents\\kol\\mafia\\mafia.db"
@@ -29,6 +32,9 @@ class Backend:
         for idx, col in enumerate(cursor.description):
             d[col[0]] = row[idx]
         return d
+
+    def clear_props(self, props):
+        return [p for p in props if type(p) is not datetime]
 
     def generic_update(self, table, props, key=None, conn=None):
         conn = self.get_conn(conn)
@@ -223,10 +229,11 @@ class Backend:
 
     def update_game(self, game_id, props, conn=None):
         conn = self.get_conn(conn)
+        print('now = ' + str(datetime.now()))
         props['game_id'] = game_id
-        props['modified'] = now_str()
+        props['modified'] = datetime.now()
         game_id = self.generic_update('games', props, 'game_id', conn)
-        return props
+        return self.clear_props(props)
 
     def next_state(self, game_id, conn=None):
         conn = self.get_conn(conn)
@@ -235,12 +242,13 @@ class Backend:
         if d is None:
             return None
 
+        print('now = ' + str(datetime.now()))
         state = {
             'game_id': game_id, 
             'status': d['status'], 
             'period': d['period'], 
             'round': d['round'],
-            'modified': d['modified']
+            'modified': datetime.now()
         }
 
         if state['status'] == 'new':
@@ -276,7 +284,7 @@ class Backend:
             state['round'] += 1
 
         self.generic_update('games', state, 'game_id', conn)
-        return state
+        return self.clear_props(state)
 
     def stop_game(self, game_id, conn=None):
         conn = self.get_conn(conn)
@@ -288,10 +296,10 @@ class Backend:
         state = {
             'game_id': game_id, 
             'status': 'finish',
-            'modified': now_str()
+            'modified': datetime.now()
         }
         self.generic_update('games', state, 'game_id', conn)
-        return state
+        return self.clear_props(state)
 
     def join_game(self, game_id, user_id, role, conn=None):
         self.generic_update(
@@ -300,16 +308,20 @@ class Backend:
                 'game_id': game_id, 
                 'user_id': user_id, 
                 'role': role,
-                'modified': now_str()
+                'created': datetime.now(),
+                'modified': datetime.now()
             })
         return self.get_game(game_id)
 
     def checkUpdates(self, since, user_id, conn=None):
         conn = self.get_conn(conn)
         cursor = conn.execute(
-            'select g.game_id, max(g.modified, m.created, m.modified) as ts ' + \
-            'from games g inner join members m on m.game_id = g.game_id and m.user_id = :user_id ' + \
-            'where g.modified > :since or m.created > :since or m.modified > :since',
+            'select distinct m.game_id ' + \
+            'from members m inner join games g on g.game_id = m.game_id ' + \
+            'where m.game_id in ( ' + \
+            '    select g.game_id ' + \
+            '    from games g inner join members m on m.game_id = g.game_id and m.user_id = :user_id ' + \
+            ') and g.modified >= :since or m.created >= :since or m.modified >= :since',
             {'user_id': user_id, 'since': since}
         )
         games = [self.get_game(d['game_id']) for d in cursor.fetchall()]

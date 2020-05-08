@@ -23,6 +23,9 @@ const reducer = (state, action) => {
         case 'JOIN_GAME':
             return action.payload;
         
+        case 'GAME_UPDATE':
+            return action.payload;
+
       default:
           return state;
   }

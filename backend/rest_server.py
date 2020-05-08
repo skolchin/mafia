@@ -8,7 +8,7 @@ from time import sleep
 from datetime import datetime
 from urllib.parse import quote_plus
 
-from backend import Backend
+from backend import Backend, dt_to_str, dt_from_str
 
 app = Flask(__name__, static_folder='public')
 app.config['JSON_AS_ASCII'] = False
@@ -104,33 +104,37 @@ class MessageResource(Resource):
         parser.add_argument('user_id', type=str, required=True)
         args = parser.parse_args()
         last_ts = request.headers.get('Last-Event-ID')
-        print(last_ts)
+        try:
+            last_ts = dt_from_str(last_ts)
+        except:
+            last_ts = None
+        print('New client connected with user_id={}'.format(args.user_id))
 
         #@copy_current_request_context
-        def eventStream():
+        def eventStream(last_ts):
             ts = last_ts if last_ts is not None else datetime.now()
             while(True):
                 sleep(5)
-                #yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
-                #    "hello, world!",
-                #     quote_plus(str(ts))
-                #)
-                #print("Message " + quote_plus(str(ts)))
+                #print('since = ' + str(ts))
+                last_ts = ts
                 games = backend.checkUpdates(ts, args.user_id)
-                #games = ['1']
                 ts = datetime.now()
                 if games is None or len(games) == 0:
-                    yield 'event: ping\ndata: \n\n'
+                    yield 'event: ping\ndata: \nid: {}\n\n'.format(quote_plus(dt_to_str(last_ts)))
                 else:
-                    for g in games:
-                        print("Message " + quote_plus(str(ts)))
-                        yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
-                            json.dumps(g, ensure_ascii=False),
-                            quote_plus(str(ts))
-                        )
+                    yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
+                        json.dumps(games, ensure_ascii=False),
+                        quote_plus(dt_to_str(last_ts))
+                    )
+                    #for g in games:
+                    #    print("Message " + quote_plus(str(ts)))
+                    #    yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
+                    #        json.dumps(g, ensure_ascii=False),
+                    #        quote_plus(str(ts))
+                    #    )
 
         return Response(
-            eventStream(), 
+            eventStream(last_ts), 
             headers={
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",

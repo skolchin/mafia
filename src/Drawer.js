@@ -10,6 +10,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
+import Badge from '@material-ui/core/Badge';
 import MenuIcon from '@material-ui/icons/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
@@ -21,6 +22,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
+import NotificationsIcon from '@material-ui/icons/Notifications';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Block from '@material-ui/icons/Block';
@@ -106,37 +108,54 @@ const useStyles = makeStyles((theme) => ({
 export default function GameDrawer() {
   const classes = useStyles();
   const theme = useTheme();
-  const [drawerOpen, setOpen] = React.useState(true);
   const [state, dispatch] = React.useContext(AppContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [loginOpen, setLoginOpen] = React.useState(false);
   const menuOpen = Boolean(anchorEl);
   const [, setCookie, removeCookie] = useCookies(['token']);
 
   const initialState = {
     selected: -1,
+    drawerOpen: true,
+    loginOpen: false,
     isSubmitting: false,
-    errorMessage: null
+    errorMessage: null,
   };
   const [data, setData] = React.useState(initialState);
 
   const handleDrawerOpen = () => {
-    setOpen(true);
+    setData({...data, drawerOpen: true});
   };
   const handleDrawerClose = () => {
-    setOpen(false);
+    setData({...data, drawerOpen: false});
   };
-  const handleMenu = (event) => {
+  const handleGameSel = (index) => {
+    setData({...data, selected: index});
+  }
+  const handleLoginOpen = () => {
+    setData({...data, loginOpen: true});
+    handleMenuClose();
+  }
+  const handleLoginClose = () => {
+    setData({...data, loginOpen: false});
+  };
+  const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+  const handleProfileOpen = () => {
+    handleMenuClose();
+    dispatch({type: 'PROFILE', payload: state.user})
+  }
+  const handleErrorClose = () => {
+    setData({...data, errorMessage: null});
+  }
+  const handleInfoClose = () => {
+    dispatch({type: 'HIDE_MESSAGE', payload: null});
+  }
   const handleNewGame = () => {
-    setData({
-      ...data,
-      isSubmitting: true
-    })
+    setData({...data, isSubmitting: true})
     fetch(Backend.GAMES_URL,  {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -158,10 +177,7 @@ export default function GameDrawer() {
           type: "NEW_GAME",
           payload: resJson
       })
-      setData({
-        ...data,
-        isSubmitting: false,
-      })
+      setData({...data, isSubmitting: false})
     })
     .catch(error => {
       setData({
@@ -170,20 +186,6 @@ export default function GameDrawer() {
         errorMessage: error.message || error.statusText
       });
     });
-  }
-  const handleGameSel = (index) => {
-    setData({
-      ...data,
-      selected: index,
-    })
-  }
-  const handleLogin = () => {
-    setLoginOpen(true);
-    handleMenuClose();
-  }
-  const handleProfile = () => {
-    handleMenuClose();
-    dispatch({type: 'PROFILE', payload: state.user})
   }
   const handleLogout = () => {
     handleMenuClose();
@@ -200,9 +202,11 @@ export default function GameDrawer() {
     setCookie('token', null, { path: '/' });
     removeCookie('token', { path: '/' })
     dispatch({type: 'LOGOUT', payload: state.user})
-  }
-  const handleErrorClose = () => {
-    setData({...data, errorMessage: null});
+
+    if (Backend.eventSource) {
+      Backend.eventSource.close();
+      Backend.eventSource = null;
+    }
   }
 
   return (
@@ -211,7 +215,7 @@ export default function GameDrawer() {
       <AppBar
         position="fixed"
         className={clsx(classes.appBar, {
-          [classes.appBarShift]: drawerOpen,
+          [classes.appBarShift]: data.drawerOpen,
         })}
       >
         <Toolbar>
@@ -220,7 +224,7 @@ export default function GameDrawer() {
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             edge="start"
-            className={clsx(classes.menuButton, drawerOpen && classes.hide)}
+            className={clsx(classes.menuButton, data.drawerOpen && classes.hide)}
           >
             <MenuIcon />
           </IconButton>
@@ -228,12 +232,18 @@ export default function GameDrawer() {
             Mafia!
           </Typography>
           <div>
+            <IconButton aria-label="notifications" color="inherit">
+              <Badge badgeContent={0} color="secondary">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+
             <Tooltip title={(state.user && state.user.login ? state.user.name : "Not logged in")}>
               <IconButton
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
                 aria-haspopup="true"
-                onClick={handleMenu}
+                onClick={handleMenuOpen}
                 color="inherit"
               >
                 {state.user.login
@@ -241,12 +251,11 @@ export default function GameDrawer() {
                     {!state.user.has_avatar ? Backend.nameInitials(state.user) : null}
                   </Avatar>
                 )
-              : (
+                : (
                   <Avatar color="inherit" className={classes.appBarAvatar}>
                     <AccountCircle />
                   </Avatar>
-                )
-                }
+                )}
               </IconButton>
             </Tooltip>
 
@@ -266,12 +275,12 @@ export default function GameDrawer() {
               onClose={handleMenuClose}
             >
               {!state.user.login && (
-                <MenuItem onClick={handleLogin}>
+                <MenuItem onClick={handleLoginOpen}>
                   Login
                 </MenuItem>
               )}
               {state.user.login && (
-                <MenuItem onClick={handleProfile}>
+                <MenuItem onClick={handleProfileOpen}>
                   Profile
                 </MenuItem>
               )}
@@ -288,7 +297,7 @@ export default function GameDrawer() {
         className={classes.drawer}
         variant="persistent"
         anchor="left"
-        open={drawerOpen}
+        open={data.drawerOpen}
         classes={{
           paper: classes.drawerPaper,
         }}>
@@ -327,7 +336,7 @@ export default function GameDrawer() {
 
       <main
         className={clsx(classes.content, {
-          [classes.contentShift]: drawerOpen,
+          [classes.contentShift]: data.drawerOpen,
         })}
       >
         <div className={classes.drawerHeader} />
@@ -336,13 +345,21 @@ export default function GameDrawer() {
         )}
       </main>
 
-      <Login open={loginOpen} onClose={setLoginOpen} />
+      <Login open={data.loginOpen} onClose={handleLoginClose} />
+
+      <InfoBar open={state.lastMessage} 
+        severity = 'info'
+        message = {state.lastMessage}
+        autoHide = {3000}
+        onClose = {handleInfoClose}
+      />
+
       <InfoBar open={data.errorMessage} 
-          severity = 'error'
-          message = {data.errorMessage}
-          autoHide = {3000}
-          onClose = {handleErrorClose}
-          />
+        severity = 'error'
+        message = {data.errorMessage}
+        autoHide = {3000}
+        onClose = {handleErrorClose}
+      />
     </div>
   );
 }

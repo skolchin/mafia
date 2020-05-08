@@ -27,11 +27,9 @@ export default class Backend {
         members: []
     }
     static INITIAL_MESSAGE_STATE = {
-        user_id: null,
-        game_id: null,
         type: null,
-        data: null,
-        sent: null,
+        received: null,
+        message: null,
     }
     
     static INITIAL_APP_STATE = {
@@ -39,6 +37,7 @@ export default class Backend {
         games: [],
         messages: [],
         profileOpening: false,
+        lastMessage: null,
     };
 
     static eventSource = null;

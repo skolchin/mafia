@@ -65,6 +65,27 @@ export function Login(props) {
           })
           handleClose(false);
           setCookie('token', resJson.user.token, { path: '/' });
+
+          if (!Backend.eventSource) {
+            Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user.user_id);
+            Backend.eventSource.addEventListener(
+              'game_update',
+              e => {
+                console.log('New event');
+                dispatch({
+                  type: 'GAME_UPDATE',
+                  payload: JSON.parse(e.data),
+                })
+              }
+            )
+            window.addEventListener("beforeunload", (ev) => {
+              ev.preventDefault();
+              if (Backend.eventSource) {
+                Backend.eventSource.close();
+                Backend.eventSource = null;
+              }
+            })
+          }
         }
         else if (!resJson.user_id) {
           // User not found
