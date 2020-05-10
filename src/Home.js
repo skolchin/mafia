@@ -19,8 +19,7 @@ export default function Home(props) {
     const [cookies] = useCookies(['token']);
   
     useEffect(() => {
-      if (cookies.token && !state.user.token && !state.isLoading) {
-        state.isLoading = true;
+      if (cookies.token && !state.user.token) {
         console.log('Restoring session');
         fetch(Backend.AUTH_URL,  {
           method: "POST",
@@ -60,26 +59,19 @@ export default function Home(props) {
               Backend.eventSource.addEventListener('game_update', listener);
               Backend.eventSource.addEventListener('status_change', listener);
               Backend.eventSource.addEventListener('new_member', listener);
+
+              window.addEventListener("beforeunload", (ev) => {
+                ev.preventDefault();
+                if (Backend.eventSource) {
+                  Backend.eventSource.close();
+                  Backend.eventSource = null;
+                }
+              });
             }
           }
         })
       }
-
-      window.addEventListener("beforeunload", (ev) => {
-        ev.preventDefault();
-        if (Backend.eventSource) {
-          Backend.eventSource.close();
-          Backend.eventSource = null;
-        }
-      });
-
-      return () => {
-        if (Backend.eventSource) {
-          Backend.eventSource.close();
-          Backend.eventSource = null;
-        }
-      }
-    }, [dispatch, cookies.token, state.isLoading, state.user.token])
+    }, [dispatch, cookies.token, state.user.token])
 
     return(
         <div className={classes.root}>

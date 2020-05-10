@@ -156,6 +156,7 @@ export default function GameCard(props) {
                 body: JSON.stringify({
                     a: "update",
                     game_id: game.game_id,
+                    user_id: state.user.user_id,
                     state: JSON.stringify({name: text}),
                 })
             })
@@ -194,6 +195,7 @@ export default function GameCard(props) {
                 body: JSON.stringify({
                     a: "next_state",
                     game_id: game.game_id,
+                    user_id: state.user.user_id,
                 })
             },
             'CHANGE_STATE')
@@ -207,6 +209,7 @@ export default function GameCard(props) {
                 body: JSON.stringify({
                     a: "stop",
                     game_id: game.game_id,
+                    user_id: state.user.user_id,
                 })
             },
             'STOP_GAME')

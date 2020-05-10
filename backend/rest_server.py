@@ -88,11 +88,11 @@ class GameResource(Resource):
         if args.a.lower() == 'new':
             return backend.add_game(args.user_id, '<New game>')
         elif args.a.lower() == 'update':
-            return backend.update_game(args.game_id, json.loads(args.state))
+            return backend.update_game(args.game_id, args.user_id, json.loads(args.state))
         elif args.a.lower() == 'next_state':
-            return backend.next_state(args.game_id)
+            return backend.next_state(args.game_id, args.user_id)
         elif args.a.lower() == 'stop':
-            return backend.stop_game(args.game_id)
+            return backend.stop_game(args.game_id, args.user_id)
         elif args.a.lower() == 'join':
             return backend.join_game(args.game_id, args.user_id, args.role)
         else:
@@ -124,7 +124,11 @@ class MessageResource(Resource):
                     for c in changes:
                         yield 'event: {}\ndata: {}\nid: {}\n\n'.format(
                             c['type'],
-                            json.dumps({"change": c['change'], "game": c['game']}, ensure_ascii=False),
+                            json.dumps(
+                                {
+                                    "change": {**c['change'], "creator_id": c['creator_id']}, 
+                                    "game": c['game']
+                                }, ensure_ascii=False),
                             quote_plus(dt_to_str(c['ts']))
                     )
 

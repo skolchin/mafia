@@ -215,6 +215,7 @@ class Backend:
             'game_history',
             {
                 'game_id': game_id,
+                'creator_id': leader_id,
                 'hist_type': 'new_game',
                 'hist_data': '{}', 
                 'created': datetime.now()
@@ -254,7 +255,7 @@ class Backend:
         ]
         return game
 
-    def update_game(self, game_id, props, conn=None):
+    def update_game(self, game_id, user_id, props, conn=None):
         conn = self.get_conn(conn)
         print('now = ' + str(datetime.now()))
         props['game_id'] = game_id
@@ -270,6 +271,7 @@ class Backend:
             'game_history',
             {
                 'game_id': game_id,
+                'creator_id': user_id,
                 'hist_type': 'game_update',
                 'hist_data': '{}', 
                 'created': datetime.now()
@@ -278,7 +280,7 @@ class Backend:
         )
         return self.clear_props(props)
 
-    def next_state(self, game_id, conn=None):
+    def next_state(self, game_id, user_id, conn=None):
         conn = self.get_conn(conn)
         cursor = conn.execute('select * from games where game_id=?', [game_id])
         d = cursor.fetchone()
@@ -338,6 +340,7 @@ class Backend:
             'game_history',
             {
                 'game_id': game_id,
+                'creator_id': user_id,
                 'hist_type': 'status_change',
                 'hist_data': json.dumps(self.clear_props(state)), 
                 'created': datetime.now()
@@ -346,7 +349,7 @@ class Backend:
         )
         return self.clear_props(state)
 
-    def stop_game(self, game_id, conn=None):
+    def stop_game(self, game_id, user_id, conn=None):
         conn = self.get_conn(conn)
         cursor = conn.execute('select * from games where game_id=?', [game_id])
         d = cursor.fetchone()
@@ -355,6 +358,7 @@ class Backend:
 
         state = {
             'game_id': game_id, 
+            'creator_id': user_id,
             'status': 'finish',
             'modified': datetime.now()
         }
@@ -395,6 +399,7 @@ class Backend:
             'game_history',
             {
                 'game_id': game_id,
+                'creator_id': user_id,
                 'hist_type': 'new_member',
                 'hist_data': '{"user_id": %s}'  % (user_id), 
                 'created': datetime.now()
@@ -406,7 +411,7 @@ class Backend:
     def checkUpdates(self, since, user_id, conn=None):
         conn = self.get_conn(conn)
         cursor = conn.execute(
-            'select h.history_id, h.game_id, h.hist_type, h.hist_data, h.created ' + \
+            'select h.history_id, h.game_id, h.creator_id, h.hist_type, h.hist_data, h.created ' + \
             'from game_history h ' + \
             'where h.game_id in ( ' + \
             '    select g.game_id ' + \
@@ -418,13 +423,14 @@ class Backend:
             {
                 'id': d['history_id'],
                 'type': d['hist_type'],
-                'change': json.loads(d['hist_data']) if d['hist_data'] else {},
+                "creator_id": d['creator_id'],
+                'change': json.loads(d['hist_data']),
                 'ts': dt_to_str(d['created']),
                 'game': self.get_game(d['game_id']) 
             }
             for d in cursor.fetchall()
         ]
-        #print("Updates since {}: {}".format(since, len(changes)))
+        print("Updates since {}: {}".format(since, len(changes)))
         return changes
 
 

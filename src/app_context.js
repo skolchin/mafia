@@ -18,28 +18,6 @@ const callGameReducerWithList = (state, type, games) => {
         })
 }
 
-// const saveMessages = (msg_type, msg_data) => {
-//     const msgToString = (msg_type, m) => {
-//         switch (msg_type) {
-//             case 'GAME_UPDATE':
-//                 return 'Game "' + m.name + '" has been updated'
-//             case 'MEMBER_UPDATE':
-//                 return 'Game "' + m.name + '" has been updated'
-
-//             default:
-//                 return 'New message of type ' + msg_type.toLowerCase() + ' received'
-//         }
-//     }
-//     return !msg_data 
-//         ? [] 
-//         : msg_data.map(m => msgToString(msg_type, m))
-// }
-
-// const getLastMessage = (msg_type, msg_data) => {
-//     const msg_list = saveMessages(msg_type, msg_data)
-//     return msg_list.length > 0 ? msg_list[msg_list.length-1] : null
-// }
-
 const reducer = (state, action) => {
     switch (action.type) {
         case 'LOGIN':
@@ -89,7 +67,9 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 games: callGameReducerWithList(state, action.type, action.payload.game),
-                lastMessage: 'Game "' + action.payload.game.name + '" has been updated',
+                lastMessage: action.payload.change.creator_id !== state.user.user_id 
+                    ? 'Game "' + action.payload.game.name + '" has been updated' 
+                    : null,
             }
 
         case 'STATUS_CHANGE':
