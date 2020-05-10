@@ -50,16 +50,16 @@ export default function Home(props) {
             if (!Backend.eventSource) {
               console.log('New event stream');
               Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user.user_id);
-              Backend.eventSource.addEventListener(
-                'game_update',
-                e => {
-                  console.log('New event');
-                  dispatch({
-                    type: 'GAME_UPDATE',
-                    payload: JSON.parse(e.data),
-                  })
-                }
-              )
+              const listener  = (e) => {
+                console.log('New event');
+                dispatch({
+                  type: e.type.toUpperCase(),
+                  payload: JSON.parse(e.data),
+                })
+              }
+              Backend.eventSource.addEventListener('game_update', listener);
+              Backend.eventSource.addEventListener('status_change', listener);
+              Backend.eventSource.addEventListener('new_member', listener);
             }
           }
         })

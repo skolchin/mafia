@@ -368,7 +368,7 @@ export default function GameCard(props) {
                 <IconButton 
                     color="primary" 
                     aria-label="join" 
-                    disabled={data.isSubmitting || game.status !== "start" || game.leader.user_id === state.user.user_id}
+                    disabled={data.isSubmitting || game.status !== "start" || !Backend.canJoin(game, state.user.user_id)}
                     onClick={handleJoinClick}>
                     <AddBoxOutlined/>
                 </IconButton>

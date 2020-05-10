@@ -27,7 +27,7 @@ export default class Backend {
         members: []
     }
     static INITIAL_MESSAGE_STATE = {
-        type: null,
+        msg_type: null,
         received: null,
         message: null,
     }
@@ -49,4 +49,8 @@ export default class Backend {
         var parts = values.name.toUpperCase().split(' ')
         return parts[0][0] + (parts.length > 1 ? parts[1][0] : '')
     }
+    static canJoin(game, user_id) {
+        return game.leader.user_id !== user_id && game.members.findIndex(m => m.user_id === user_id) === -1
+    }
+
 }

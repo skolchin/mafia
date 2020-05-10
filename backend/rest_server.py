@@ -115,23 +115,18 @@ class MessageResource(Resource):
             ts = last_ts if last_ts is not None else datetime.now()
             while(True):
                 sleep(5)
-                #print('since = ' + str(ts))
                 last_ts = ts
-                games = backend.checkUpdates(ts, args.user_id)
+                changes = backend.checkUpdates(ts, args.user_id)
                 ts = datetime.now()
-                if games is None or len(games) == 0:
-                    yield 'event: ping\ndata: \nid: {}\n\n'.format(quote_plus(dt_to_str(last_ts)))
+                if len(changes) == 0:
+                    yield 'event: ping\ndata: \nid: {}\n\n'.format(quote_plus(dt_to_str(datetime.now())))
                 else:
-                    yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
-                        json.dumps(games, ensure_ascii=False),
-                        quote_plus(dt_to_str(last_ts))
+                    for c in changes:
+                        yield 'event: {}\ndata: {}\nid: {}\n\n'.format(
+                            c['type'],
+                            json.dumps({"change": c['change'], "game": c['game']}, ensure_ascii=False),
+                            quote_plus(dt_to_str(c['ts']))
                     )
-                    #for g in games:
-                    #    print("Message " + quote_plus(str(ts)))
-                    #    yield 'event: game_update\ndata: {}\nid: {}\n\n'.format(
-                    #        json.dumps(g, ensure_ascii=False),
-                    #        quote_plus(str(ts))
-                    #    )
 
         return Response(
             eventStream(last_ts), 

@@ -18,18 +18,27 @@ const callGameReducerWithList = (state, type, games) => {
         })
 }
 
-const saveMessages = (msg_type, msg_data, last_only=false) => {
-    const msgToString = (msg_type, m) => {
-        return msg_type === 'GAME_UPDATE' 
-            ? 'Game "' + m.name + '" has been updated'
-            : 'New message of type ' + msg_type.toLowerCase() + ' received'
-    }
-    let msg_list = 
-        !msg_data 
-            ? [] 
-            : msg_data.map(m => msgToString(msg_type, m))
-    return last_only ? msg_list[msg_list.length-1] : msg_list
-}
+// const saveMessages = (msg_type, msg_data) => {
+//     const msgToString = (msg_type, m) => {
+//         switch (msg_type) {
+//             case 'GAME_UPDATE':
+//                 return 'Game "' + m.name + '" has been updated'
+//             case 'MEMBER_UPDATE':
+//                 return 'Game "' + m.name + '" has been updated'
+
+//             default:
+//                 return 'New message of type ' + msg_type.toLowerCase() + ' received'
+//         }
+//     }
+//     return !msg_data 
+//         ? [] 
+//         : msg_data.map(m => msgToString(msg_type, m))
+// }
+
+// const getLastMessage = (msg_type, msg_data) => {
+//     const msg_list = saveMessages(msg_type, msg_data)
+//     return msg_list.length > 0 ? msg_list[msg_list.length-1] : null
+// }
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -79,15 +88,24 @@ const reducer = (state, action) => {
         case 'GAME_UPDATE':
             return {
                 ...state,
-                games: callGameReducerWithList(state, action.type, action.payload),
-                messages: 
-                    [
-                        ...state.messages, 
-                        saveMessages(action.type, action.payload),
-                    ],
-                lastMessage: saveMessages(action.type, action.payload, true),
+                games: callGameReducerWithList(state, action.type, action.payload.game),
+                lastMessage: 'Game "' + action.payload.game.name + '" has been updated',
             }
 
+        case 'STATUS_CHANGE':
+            return {
+                ...state,
+                games: callGameReducerWithList(state, action.type, action.payload.game),
+                lastMessage: 'Game "' + action.payload.game.name + '" status has changed to ' + action.payload.change.status,
+            }
+
+        case 'NEW_MEMBER':
+            return {
+                ...state,
+                games: callGameReducerWithList(state, action.type, action.payload.game),
+                lastMessage: 'New member joined the game "' + action.payload.game.name + '"',
+            }
+            
         case 'HIDE_MESSAGE':
             return {
                 ...state,
