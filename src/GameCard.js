@@ -17,6 +17,8 @@ import TextField from  '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Container from '@material-ui/core/Container';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 
 import PlayCircleFilledWhiteOutlined from '@material-ui/icons/PlayCircleFilledWhiteOutlined';
 import Stop from '@material-ui/icons/Stop';
@@ -28,10 +30,13 @@ import { AppContext } from './app_context';
 import { GameDisplayMap } from './dict';
 import Backend from './backend';
 import InfoBar from './InfoBar';
+import PersonName from './PersonName';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    minWidth: 200,
+    minWidth: 300,
+    maxWidth: 300,
+    minHeight: 265,
     display: 'flex',
     marginLeft: "5px",
     marginRight: "5px",
@@ -232,6 +237,9 @@ export default function GameCard(props) {
     const handleErrorClose = () => {
       setData({...data, errorMessage: null});
     }
+    const handleMoreClick = () => {
+        
+    }
 
   return (
     <Card className={classes.root}>
@@ -282,7 +290,7 @@ export default function GameCard(props) {
                 <TableBody>
                     <TableRow>
                         <TableCell>Leader</TableCell>
-                        <TableCell align="right">
+                        <TableCell align="left">
                             <Typography variant="body2">
                                 {game.leader.name}
                             </Typography>
@@ -290,56 +298,45 @@ export default function GameCard(props) {
                     </TableRow>
                     <TableRow>
                         <TableCell>Started</TableCell>
-                        <TableCell align="right">
+                        <TableCell align="left">
                             <Typography variant="body2" noWrap={true}>
                                 {dateformat(game.started, 'dd.mm.yyyy HH:MM:ss')}
                             </Typography>
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Round</TableCell>
-                        <TableCell align="right">
-                            <Typography variant="body2">
-                                {game.round ? game.round : 'not started'}
-                            </Typography>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
                         <TableCell>Status</TableCell>
-                        <TableCell align="right">
+                        <TableCell align="left">
                             <Typography variant="body2">
                                 {GameDisplayMap["state"][game.status]}
                             </Typography>
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Period</TableCell>
-                        <TableCell align="right">
-                            <Typography variant="body2">
-                                    {game.period ? GameDisplayMap["period"][game.period] : 'not started'}
-                            </Typography>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
                         <TableCell>Members</TableCell>
-                        <TableCell align="right">
-                            <Typography variant="body2" style={{fontSize: "small"}}>
-                                {"total: " + game.total[0].toString() + "/" +  game.total[1].toString()}
-                                <br />
-                                {"citizens: " + game.citizenState[0].toString() + "/" +  game.citizenState[1].toString()}
-                                <br />
-                                {"mafia: " + game.mafiaState[0].toString() + "/" +  game.mafiaState[1].toString()}
-                            </Typography>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>Voting</TableCell>
-                        <TableCell align="right">
-                            <Typography variant="body2" style={{fontSize: "small"}}>
-                                {game.voting ? GameDisplayMap["vote"][game.voting] : "not started"}
-                                {game.voting !== "active" ? "" :
-                                    ": " + game.voteState[0].toString() + "/" +  game.voteState[1].toString()}
-                            </Typography>
+                        <TableCell align="left">
+                            {!game.members
+                                ? <Typography variant="body2">None</Typography>
+                                : <Grid container spacing={1}>
+                                    {game.members.map((item, index) => {
+                                        if (index <= 2) {
+                                            return (
+                                                <Grid key={index} item>
+                                                    <PersonName user={item} size="small"/>
+                                                </Grid>)
+                                        }
+                                        else if (index === 3) {
+                                            return (
+                                                <Grid key={index} item>
+                                                    <Link href="#" onClick={handleMoreClick}>more</Link>
+                                                </Grid>)
+                                        }
+                                        else {
+                                            return null
+                                        }
+                                    })}
+                                    </Grid>
+                            }
                         </TableCell>
                     </TableRow>
                 </TableBody>
@@ -357,33 +354,39 @@ export default function GameCard(props) {
                             ? (<CircularProgress size={20} />) 
                             : (<PlayCircleFilledWhiteOutlined/>)}
                     </IconButton>
-                    </span>
+                </span>
             </Tooltip>
             <Tooltip title="Start voting">
-                <IconButton 
-                    color="primary" 
-                    aria-label="vote" 
-                    disabled={data.isSubmitting || game.status !== "active" || game.voting !== "none"}>
-                    <PanToolOutlined/>
-                </IconButton>
+                <span>
+                    <IconButton 
+                        color="primary" 
+                        aria-label="vote" 
+                        disabled={data.isSubmitting || game.status !== "active" || game.voting !== "none"}>
+                        <PanToolOutlined/>
+                    </IconButton>
+                </span>
             </Tooltip>
             <Tooltip title="Join">
-                <IconButton 
-                    color="primary" 
-                    aria-label="join" 
-                    disabled={data.isSubmitting || game.status !== "start" || !Backend.canJoin(game, state.user.user_id)}
-                    onClick={handleJoinClick}>
-                    <AddBoxOutlined/>
-                </IconButton>
+                <span>
+                    <IconButton 
+                        color="primary" 
+                        aria-label="join" 
+                        disabled={data.isSubmitting || game.status !== "start" || !Backend.canJoin(game, state.user.user_id)}
+                        onClick={handleJoinClick}>
+                        <AddBoxOutlined/>
+                    </IconButton>
+                </span>
             </Tooltip>
             <Tooltip title="Stop the game">
-                <IconButton 
-                    color="primary" 
-                    aria-label="stop" 
-                    disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
-                    onClick={handleStopClick}>
-                    <Stop/>
-                </IconButton>
+                <span>
+                    <IconButton 
+                        color="primary" 
+                        aria-label="stop" 
+                        disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
+                        onClick={handleStopClick}>
+                        <Stop/>
+                    </IconButton>
+                </span>
             </Tooltip>
         </CardActions>
         <InfoBar open={data.errorMessage} 

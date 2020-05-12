@@ -14,52 +14,47 @@ import Badge from '@material-ui/core/Badge';
 import MenuIcon from '@material-ui/icons/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
-import Tooltip from  '@material-ui/core/Tooltip';
-import Avatar from '@material-ui/core/Avatar';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 
 import NotificationsIcon from '@material-ui/icons/Notifications';
-import AccountCircle from '@material-ui/icons/AccountCircle';
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Block from '@material-ui/icons/Block';
-import Adjust from '@material-ui/icons/Adjust';
+import BlockOutlined from '@material-ui/icons/BlockOutlined';
+import AccessTimeOutlined from '@material-ui/icons/AccessTimeOutlined';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import { AppContext } from './app_context';
-import { GameDisplayMap } from './dict';
 import Backend from './backend';
 import Login from './Login';
 import GameCard from './GameCard';
+import NewGameCard from './NewGameCard';
 import InfoBar from './InfoBar';
+import PersonName from './PersonName';
 
-const drawerWidth = 320;
+const drawerWidth = 300;
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
-    flexGrow: 1,
   },
   appBar: {
-    flexGrow: 1,
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
   },
   appBarShift: {
-    flexGrow: 1,
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginLeft: drawerWidth,
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
     }),
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
   },
   hide: {
     display: 'none',
@@ -92,16 +87,13 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: -drawerWidth,
   },
   contentShift: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
     }),
     marginLeft: 0,
-  },
-  appBarAvatar: {
-    marginLeft: 'auto',
-    width: theme.spacing(5),
-    height: theme.spacing(5),
   },
 }));
 
@@ -114,10 +106,10 @@ export default function GameDrawer() {
   const [, setCookie, removeCookie] = useCookies(['token']);
 
   const initialState = {
-    selected: -1,
     drawerOpen: true,
     loginOpen: false,
     isSubmitting: false,
+    filterStates: ['new', 'start'],
     errorMessage: null,
   };
   const [data, setData] = React.useState(initialState);
@@ -128,9 +120,6 @@ export default function GameDrawer() {
   const handleDrawerClose = () => {
     setData({...data, drawerOpen: false});
   };
-  const handleGameSel = (index) => {
-    setData({...data, selected: index});
-  }
   const handleLoginOpen = () => {
     setData({...data, loginOpen: true});
     handleMenuClose();
@@ -154,38 +143,14 @@ export default function GameDrawer() {
   const handleInfoClose = () => {
     dispatch({type: 'HIDE_MESSAGE', payload: null});
   }
-  const handleNewGame = () => {
-    setData({...data, isSubmitting: true})
-    fetch(Backend.GAMES_URL,  {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({
-          a: "new",
-          user_id: state.user.user_id,
-          name: '<New game>'
-      })
-    })
-    .then(res => {
-      if (res.ok) {
-        return res.json();
-      }
-      throw res;
-    })
-    .then(resJson => {
-      dispatch({
-          type: "NEW_GAME",
-          payload: resJson
-      })
-      setData({...data, isSubmitting: false})
-    })
-    .catch(error => {
-      setData({
-        ...data,
-        isSubmitting: false,
-        errorMessage: error.message || error.statusText
-      });
-    });
+  const showNewGames = () => {
+    setData({...data, filterStates: ['new', 'start']});
+  }
+  const showActiveGames = () => {
+    setData({...data, filterStates: ['active']});
+  }
+  const showArchiveGames = () => {
+    setData({...data, filterStates: ['finish']});
   }
   const handleLogout = () => {
     handleMenuClose();
@@ -238,26 +203,15 @@ export default function GameDrawer() {
               </Badge>
             </IconButton>
 
-            <Tooltip title={(state.user && state.user.login ? state.user.name : "Not logged in")}>
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenuOpen}
-                color="inherit"
-              >
-                {state.user.login
-                ? (<Avatar color="inherit" src={Backend.avatarURL(state.user)} className={classes.appBarAvatar}>
-                    {!state.user.has_avatar ? Backend.nameInitials(state.user) : null}
-                  </Avatar>
-                )
-                : (
-                  <Avatar color="inherit" className={classes.appBarAvatar}>
-                    <AccountCircle />
-                  </Avatar>
-                )}
-              </IconButton>
-            </Tooltip>
+            <IconButton
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleMenuOpen}
+              color="inherit"
+            >
+              <PersonName user={state.user} />
+            </IconButton>
 
             <Menu
               id="menu-appbar"
@@ -274,17 +228,17 @@ export default function GameDrawer() {
               open={menuOpen}
               onClose={handleMenuClose}
             >
-              {!state.user.login && (
+              {!state.user.token && (
                 <MenuItem onClick={handleLoginOpen}>
                   Login
                 </MenuItem>
               )}
-              {state.user.login && (
+              {state.user.token && (
                 <MenuItem onClick={handleProfileOpen}>
                   Profile
                 </MenuItem>
               )}
-              {state.user.login && (
+              {state.user.token && (
                 <MenuItem onClick={handleLogout}>
                   Logout
                 </MenuItem>
@@ -307,29 +261,26 @@ export default function GameDrawer() {
           </IconButton>
         </div>
         <Divider />
-          {state.user.login && (
+          {state.user.token && (
             <List>
-              <ListItem button key="new" disabled={data.isSubmitting} onClick={handleNewGame}>
+              <ListItem button key="new" disabled={data.isSubmitting} onClick={showNewGames}>
                 <ListItemIcon>
-                  {data.isSubmitting ? (<CircularProgress/>) : (<AddCircleOutline />)}
+                  {data.isSubmitting ? <CircularProgress /> : <AddCircleOutline />}
                 </ListItemIcon>
-                <ListItemText primary="New game" />
+                <ListItemText primary="New & starting games" />
               </ListItem>
-
-              {state.games.map((item, index) => (
-                <ListItem button key={index} disabled={data.isSubmitting} onClick={(e) => handleGameSel(index)}>
-                  <ListItemIcon>
-                    {item.status !== "finish"
-                      ? (<Adjust />)
-                      : (<Block />)
-                    }
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.name}
-                    secondary={GameDisplayMap["state"][item.status]}
-                  />
-                </ListItem>
-              ))}
+              <ListItem button key="active" disabled={data.isSubmitting} onClick={showActiveGames}>
+                <ListItemIcon>
+                  {data.isSubmitting ? <CircularProgress /> : <AccessTimeOutlined />}
+                </ListItemIcon>
+                <ListItemText primary="Active games" />
+              </ListItem>
+              <ListItem button key="archive" disabled={data.isSubmitting} onClick={showArchiveGames}>
+                <ListItemIcon>
+                  {data.isSubmitting ? <CircularProgress /> : <BlockOutlined />}
+                </ListItemIcon>
+                <ListItemText primary="Finished games" />
+              </ListItem>
             </List>
           )}
       </Drawer>
@@ -340,26 +291,37 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        {state.user.login && data.selected >= 0 && data.selected < state.games.length && (
-          <GameCard game={state.games[data.selected]} />
-        )}
+        <Grid container>
+          {state.user.token && data.filterStates.indexOf('new') >= 0 && (
+              <Grid item key="new">
+                <NewGameCard />
+              </Grid>
+          )}
+          {state.user.token && (
+            state.games.filter(game => data.filterStates.indexOf(game.status) >= 0).map((game, index) => (
+              <Grid item key={index}>
+                <GameCard game={game} />
+              </Grid>
+            ))
+          )}
+        </Grid>
+
+        <Login open={data.loginOpen} onClose={handleLoginClose} />
+        <InfoBar open={state.lastMessage} 
+          severity = 'info'
+          message = {state.lastMessage}
+          autoHide = {3000}
+          onClose = {handleInfoClose}
+        />
+        <InfoBar open={data.errorMessage} 
+          severity = 'error'
+          message = {data.errorMessage}
+          autoHide = {3000}
+          onClose = {handleErrorClose}
+        />
+
       </main>
 
-      <Login open={data.loginOpen} onClose={handleLoginClose} />
-
-      <InfoBar open={state.lastMessage} 
-        severity = 'info'
-        message = {state.lastMessage}
-        autoHide = {3000}
-        onClose = {handleInfoClose}
-      />
-
-      <InfoBar open={data.errorMessage} 
-        severity = 'error'
-        message = {data.errorMessage}
-        autoHide = {3000}
-        onClose = {handleErrorClose}
-      />
     </div>
   );
 }

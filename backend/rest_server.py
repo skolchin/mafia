@@ -57,7 +57,7 @@ class UserAvatarResource(Resource):
         args = parser.parse_args()
         im, ctype = backend.get_avatar(args.user_id)
         if im is None:
-            return None
+            abort(404)
         else:
             response = make_response(im)
             response.headers['content-type'] = ctype

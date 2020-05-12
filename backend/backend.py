@@ -81,15 +81,13 @@ class Backend:
         conn = self.get_conn(conn)
         if user_id is not None:
             cursor = conn.execute(
-                'select u.*, a.is_default as has_avatar from users u ' + \
-                'left join avatars a on a.user_id = u.user_id and a.is_default = 1 ' \
+                'select u.* from users u ' + \
                 'where u.user_id = ?', [user_id]
             )
 
         elif login is not None:
             cursor = conn.execute(
-                'select u.*, a.is_default as has_avatar from users u ' + \
-                'left join avatars a on a.user_id = u.user_id and a.is_default = 1 ' \
+                'select u.* from users u ' + \
                 'where login = ?', [login]
             )
         else:
