@@ -36,7 +36,6 @@ export default class Backend {
         user: this.INITIAL_USER_STATE,
         games: [],
         messages: [],
-        profileOpening: false,
         lastMessage: null,
     };
 

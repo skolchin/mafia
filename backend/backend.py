@@ -255,7 +255,6 @@ class Backend:
 
     def update_game(self, game_id, user_id, props, conn=None):
         conn = self.get_conn(conn)
-        print('now = ' + str(datetime.now()))
         props['game_id'] = game_id
         props['modified'] = datetime.now()
         game_id = self.generic_update(
@@ -428,7 +427,7 @@ class Backend:
             }
             for d in cursor.fetchall()
         ]
-        print("Updates since {}: {}".format(since, len(changes)))
+        #print("Updates since {}: {}".format(since, len(changes)))
         return changes
 
 

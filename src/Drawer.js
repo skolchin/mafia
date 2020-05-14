@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCookies } from 'react-cookie';
 import clsx from 'clsx';
+import { useHistory } from "react-router-dom";
 
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
@@ -100,6 +101,7 @@ const useStyles = makeStyles((theme) => ({
 export default function GameDrawer() {
   const classes = useStyles();
   const theme = useTheme();
+  const history = useHistory();
   const [state, dispatch] = React.useContext(AppContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const menuOpen = Boolean(anchorEl);
@@ -115,17 +117,17 @@ export default function GameDrawer() {
   const [data, setData] = React.useState(initialState);
 
   const handleDrawerOpen = () => {
-    setData({...data, drawerOpen: true});
+    setData({ ...data, drawerOpen: true });
   };
   const handleDrawerClose = () => {
-    setData({...data, drawerOpen: false});
+    setData({ ...data, drawerOpen: false });
   };
   const handleLoginOpen = () => {
-    setData({...data, loginOpen: true});
+    setData({ ...data, loginOpen: true });
     handleMenuClose();
   }
   const handleLoginClose = () => {
-    setData({...data, loginOpen: false});
+    setData({ ...data, loginOpen: false });
   };
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -135,43 +137,46 @@ export default function GameDrawer() {
   };
   const handleProfileOpen = () => {
     handleMenuClose();
-    dispatch({type: 'PROFILE', payload: state.user})
+    history.push('/profile/' + state.user.user_id.toString());
   }
   const handleErrorClose = () => {
-    setData({...data, errorMessage: null});
+    setData({ ...data, errorMessage: null });
   }
   const handleInfoClose = () => {
-    dispatch({type: 'HIDE_MESSAGE', payload: null});
+    dispatch({ type: 'HIDE_MESSAGE', payload: null });
   }
   const showNewGames = () => {
-    setData({...data, filterStates: ['new', 'start']});
+    setData({ ...data, filterStates: ['new', 'start'] });
   }
   const showActiveGames = () => {
-    setData({...data, filterStates: ['active']});
+    setData({ ...data, filterStates: ['active'] });
   }
   const showArchiveGames = () => {
-    setData({...data, filterStates: ['finish']});
+    setData({ ...data, filterStates: ['finish'] });
   }
   const handleLogout = () => {
     handleMenuClose();
-    fetch(Backend.AUTH_URL,  {
+    fetch(Backend.AUTH_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
       body: JSON.stringify({
-          a: "logout",
-          user_id: state.user.user_id,
-          token: state.user.token
+        a: "logout",
+        user_id: state.user.user_id,
+        token: state.user.token
       })
     })
     setCookie('token', null, { path: '/' });
     removeCookie('token', { path: '/' })
-    dispatch({type: 'LOGOUT', payload: state.user})
+    dispatch({ type: 'LOGOUT', payload: state.user })
 
     if (Backend.eventSource) {
       Backend.eventSource.close();
       Backend.eventSource = null;
     }
+  }
+  const handleErrror = (error) => {
+    setData({ ...data, errorMessage: error });
   }
 
   return (
@@ -193,7 +198,7 @@ export default function GameDrawer() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap  className={classes.drawerTitle}>
+          <Typography variant="h6" noWrap className={classes.drawerTitle}>
             Mafia!
           </Typography>
           <div>
@@ -243,7 +248,7 @@ export default function GameDrawer() {
                   Logout
                 </MenuItem>
               )}
-              </Menu>
+            </Menu>
           </div>
         </Toolbar>
       </AppBar>
@@ -261,28 +266,28 @@ export default function GameDrawer() {
           </IconButton>
         </div>
         <Divider />
-          {state.user.token && (
-            <List>
-              <ListItem button key="new" disabled={data.isSubmitting} onClick={showNewGames}>
-                <ListItemIcon>
-                  {data.isSubmitting ? <CircularProgress /> : <AddCircleOutline />}
-                </ListItemIcon>
-                <ListItemText primary="New & starting games" />
-              </ListItem>
-              <ListItem button key="active" disabled={data.isSubmitting} onClick={showActiveGames}>
-                <ListItemIcon>
-                  {data.isSubmitting ? <CircularProgress /> : <AccessTimeOutlined />}
-                </ListItemIcon>
-                <ListItemText primary="Active games" />
-              </ListItem>
-              <ListItem button key="archive" disabled={data.isSubmitting} onClick={showArchiveGames}>
-                <ListItemIcon>
-                  {data.isSubmitting ? <CircularProgress /> : <BlockOutlined />}
-                </ListItemIcon>
-                <ListItemText primary="Finished games" />
-              </ListItem>
-            </List>
-          )}
+        {state.user.token && (
+          <List>
+            <ListItem button key="new" disabled={data.isSubmitting} onClick={showNewGames}>
+              <ListItemIcon>
+                {data.isSubmitting ? <CircularProgress /> : <AddCircleOutline />}
+              </ListItemIcon>
+              <ListItemText primary="New & starting games" />
+            </ListItem>
+            <ListItem button key="active" disabled={data.isSubmitting} onClick={showActiveGames}>
+              <ListItemIcon>
+                {data.isSubmitting ? <CircularProgress /> : <AccessTimeOutlined />}
+              </ListItemIcon>
+              <ListItemText primary="Active games" />
+            </ListItem>
+            <ListItem button key="archive" disabled={data.isSubmitting} onClick={showArchiveGames}>
+              <ListItemIcon>
+                {data.isSubmitting ? <CircularProgress /> : <BlockOutlined />}
+              </ListItemIcon>
+              <ListItemText primary="Finished games" />
+            </ListItem>
+          </List>
+        )}
       </Drawer>
 
       <main
@@ -293,31 +298,31 @@ export default function GameDrawer() {
         <div className={classes.drawerHeader} />
         <Grid container>
           {state.user.token && data.filterStates.indexOf('new') >= 0 && (
-              <Grid item key="new">
-                <NewGameCard />
-              </Grid>
+            <Grid item key="new">
+              <NewGameCard onError={handleErrror} />
+            </Grid>
           )}
           {state.user.token && (
             state.games.filter(game => data.filterStates.indexOf(game.status) >= 0).map((game, index) => (
               <Grid item key={index}>
-                <GameCard game={game} />
+                <GameCard game={game} onError={handleErrror} />
               </Grid>
             ))
           )}
         </Grid>
 
         <Login open={data.loginOpen} onClose={handleLoginClose} />
-        <InfoBar open={state.lastMessage} 
-          severity = 'info'
-          message = {state.lastMessage}
-          autoHide = {3000}
-          onClose = {handleInfoClose}
+        <InfoBar open={state.lastMessage}
+          severity='info'
+          message={state.lastMessage}
+          autoHide={3000}
+          onClose={handleInfoClose}
         />
-        <InfoBar open={data.errorMessage} 
-          severity = 'error'
-          message = {data.errorMessage}
-          autoHide = {3000}
-          onClose = {handleErrorClose}
+        <InfoBar open={data.errorMessage}
+          severity='error'
+          message={data.errorMessage}
+          autoHide={3000}
+          onClose={handleErrorClose}
         />
 
       </main>

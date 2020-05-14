@@ -81,14 +81,14 @@ class GameResource(Resource):
         parser.add_argument('a', type=str, required=True)
         parser.add_argument('game_id', type=int, required=False)
         parser.add_argument('user_id', type=int, required=False)
-        parser.add_argument('state', type=str, required=False)
+        parser.add_argument('name', type=str, required=False)
         parser.add_argument('role', type=str, required=False)
         args = parser.parse_args()
 
         if args.a.lower() == 'new':
             return backend.add_game(args.user_id, '<New game>')
         elif args.a.lower() == 'update':
-            return backend.update_game(args.game_id, args.user_id, json.loads(args.state))
+            return backend.update_game(args.game_id, args.user_id, {'name': args.name})
         elif args.a.lower() == 'next_state':
             return backend.next_state(args.game_id, args.user_id)
         elif args.a.lower() == 'stop':

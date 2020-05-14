@@ -3,7 +3,6 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 
-
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
@@ -11,16 +10,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export default function Profile(props) {
+export default function GameProfile(props) {
     const classes = useStyles();
     const {match: {params}} = props.args;
-    const {user_id} = params;
+    const {game_id} = params;
 
     return(
         <div className={classes.root}>
                 <Container>
                     <Typography>
-                        This eventually will become a profile displying user {user_id}
+                        Here would be a main game profile for game {game_id}
                     </Typography>
                 </Container>
         </div>
