@@ -52,6 +52,7 @@ const reducer = (state, action) => {
                     ...state.games, 
                     action.payload,
                 ],
+                lastMessage: 'New game created',
             };
 
         case 'CHANGE_NAME':
@@ -76,7 +77,7 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 games: callGameReducerWithList(state, action.type, action.payload.game),
-                lastMessage: 'Game "' + action.payload.game.name + '" status has changed to ' + action.payload.change.status,
+                lastMessage: Backend.getGameStatusMessage(action.payload.game, action.payload.change),
             }
 
         case 'NEW_MEMBER':

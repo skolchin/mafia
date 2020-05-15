@@ -20,6 +20,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
+import Popover from '@material-ui/core/Popover';
+import Button from '@material-ui/core/Button';
 
 import PlayCircleFilledWhiteOutlined from '@material-ui/icons/PlayCircleFilledWhiteOutlined';
 import Stop from '@material-ui/icons/Stop';
@@ -36,8 +38,8 @@ import InputBox from './InputBox';
 const useStyles = makeStyles((theme) => ({
   root: {
     minWidth: 300,
-    maxWidth: 300,
-    minHeight: 265,
+    minHeight: 250,
+    height: "100%",
     display: 'flex',
     marginLeft: "5px",
     marginRight: "5px",
@@ -70,16 +72,14 @@ const useStyles = makeStyles((theme) => ({
   withMargin: {
     marginLeft: theme.spacing(1),
   },
-
 }));
+
 
 export default function GameCard(props) {
   const classes = useStyles();
   const history = useHistory();
-  const game = props.game;
   const [state, dispatch] = React.useContext(AppContext);
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const menuOpen = Boolean(anchorEl);
+  const game = props.game;
 
   const initialState = {
     name: "",
@@ -88,6 +88,8 @@ export default function GameCard(props) {
     errorMessage: null
   };
   const [data, setData] = React.useState(initialState);
+  const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const [moreAnchor, setMoreAnchor] = React.useState(null);
 
   const next_title = game.status === "active" ?
     GameDisplayMap["next_period"][game.period] :
@@ -127,18 +129,24 @@ export default function GameCard(props) {
       });
   }
   const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+    setMenuAnchor(event.currentTarget);
   };
   const handleMenuClose = () => {
-    setAnchorEl(null);
+    setMenuAnchor(null);
   };
   const handleInputOpen = () => {
-    setAnchorEl(null);
+    handleMenuClose();
     setData({ ...data, isEditing: true });
   };
   const handleInputClose = () => {
     setData({ ...data, isEditing: false });
   }
+  const handleMoreOpen = (event) => {
+    setMoreAnchor(event.currentTarget);
+  };
+  const handleMoreClose = () => {
+    setMoreAnchor(null);
+  };
   const handleNameUpdate = (text) => {
     updateGame(
       {
@@ -197,9 +205,6 @@ export default function GameCard(props) {
       },
       'JOIN_GAME')
   }
-  const handleMoreClick = () => {
-    //        
-  }
   const handleGameOpen = () => {
     handleMenuClose();
     history.push('/game/' + game.game_id.toString());
@@ -211,7 +216,7 @@ export default function GameCard(props) {
         <CardContent className={classes.content}>
           <Menu
             id="menu-card"
-            anchorEl={anchorEl}
+            anchorEl={menuAnchor}
             anchorOrigin={{
               vertical: 'top',
               horizontal: 'right',
@@ -221,7 +226,7 @@ export default function GameCard(props) {
               vertical: 'top',
               horizontal: 'right',
             }}
-            open={menuOpen}
+            open={Boolean(menuAnchor)}
             onClose={handleMenuClose}
           >
             <MenuItem
@@ -229,11 +234,33 @@ export default function GameCard(props) {
               disabled={data.isSubmitting || game.status !== "new" || game.leader.user_id !== state.user.user_id}
             >
               Change name
-                </MenuItem>
+            </MenuItem>
             <MenuItem onClick={handleGameOpen}>
               Open
-                </MenuItem>
+            </MenuItem>
           </Menu>
+          <Popover
+            id="members"
+            open={Boolean(moreAnchor)}
+            anchorEl={moreAnchor}
+            onClose={handleMoreClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+          >
+            <Grid container direction="column" style={{padding: "5px"}}>
+              {game.members.map((item, index) => 
+                <Grid key={index} item  style={{padding: "2px"}}>
+                  <PersonName user={item} size="small" asChip showName />
+                </Grid>
+              )}
+            </Grid>
+          </Popover>    
 
           <Grid className={classes.withMargin} container direction="row" justify="space-between" alignItems="center">
             <Grid item>
@@ -258,9 +285,7 @@ export default function GameCard(props) {
               <TableRow>
                 <TableCell>Leader</TableCell>
                 <TableCell align="left">
-                  <Typography variant="body2">
-                    {game.leader.name}
-                  </Typography>
+                  <PersonName user={game.leader} size="small" showName asChip />
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -295,7 +320,7 @@ export default function GameCard(props) {
                         else if (index === 3) {
                           return (
                             <Grid key={index} item>
-                              <Link href="#" onClick={handleMoreClick}>more</Link>
+                              <Link href="#" onClick={handleMoreOpen} style={{fontSize: -1}}>more</Link>
                             </Grid>)
                         }
                         else {
@@ -311,51 +336,68 @@ export default function GameCard(props) {
         </CardContent>
 
         <CardActions className={classes.withMargin}>
+          <Button
+            color="primary"
+            aria-label="open"
+            disabled={data.isSubmitting}
+            onClick={handleGameOpen}
+          >
+            Open
+          </Button>
+
           <Tooltip title={next_title}>
             <span>
               <IconButton
                 color="primary"
                 aria-label="next"
                 disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
-                onClick={handleNextClick}>
+                onClick={handleNextClick}
+              >
                 {data.isSubmitting
                   ? (<CircularProgress size={20} />)
                   : (<PlayCircleFilledWhiteOutlined />)}
               </IconButton>
             </span>
           </Tooltip>
+
           <Tooltip title="Start voting">
             <span>
               <IconButton
                 color="primary"
                 aria-label="vote"
-                disabled={data.isSubmitting || game.status !== "active" || game.voting !== "none"}>
+                disabled={data.isSubmitting || game.status !== "active" || game.voting !== "none"}
+              >
                 <PanToolOutlined />
               </IconButton>
             </span>
           </Tooltip>
+
           <Tooltip title="Join">
             <span>
               <IconButton
                 color="primary"
                 aria-label="join"
                 disabled={data.isSubmitting || game.status !== "start" || !Backend.canJoin(game, state.user.user_id)}
-                onClick={handleJoinClick}>
+                onClick={handleJoinClick}
+              >
                 <AddBoxOutlined />
               </IconButton>
             </span>
           </Tooltip>
+
           <Tooltip title="Stop the game">
             <span>
               <IconButton
                 color="primary"
                 aria-label="stop"
                 disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
-                onClick={handleStopClick}>
+                onClick={handleStopClick}
+              >
                 <Stop />
               </IconButton>
             </span>
           </Tooltip>
+
         </CardActions>
 
         <InputBox open={data.isEditing}

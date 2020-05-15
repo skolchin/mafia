@@ -80,7 +80,6 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
-    padding: theme.spacing(3),
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -96,6 +95,10 @@ const useStyles = makeStyles((theme) => ({
     }),
     marginLeft: 0,
   },
+  padded: {
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+  }
 }));
 
 export default function GameDrawer() {
@@ -296,15 +299,15 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        <Grid container>
+        <Grid container alignItems="stretch">
           {state.user.token && data.filterStates.indexOf('new') >= 0 && (
-            <Grid item key="new">
+            <Grid item key="new" className={classes.padded} >
               <NewGameCard onError={handleErrror} />
             </Grid>
           )}
           {state.user.token && (
             state.games.filter(game => data.filterStates.indexOf(game.status) >= 0).map((game, index) => (
-              <Grid item key={index}>
+              <Grid item key={index} className={classes.padded}>
                 <GameCard game={game} onError={handleErrror} />
               </Grid>
             ))

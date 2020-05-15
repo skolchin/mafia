@@ -15,8 +15,7 @@ import Backend from './backend';
 const useStyles = makeStyles((theme) => ({
   root: {
     minWidth: 300,
-    maxWidth: 300,
-    minHeight: 280,
+    height: "100%",
     display: 'flex',
     marginLeft: "5px",
     marginRight: "5px",

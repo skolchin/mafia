@@ -355,7 +355,6 @@ class Backend:
 
         state = {
             'game_id': game_id, 
-            'creator_id': user_id,
             'status': 'finish',
             'modified': datetime.now()
         }
@@ -370,6 +369,7 @@ class Backend:
             'game_history',
             {
                 'game_id': game_id,
+                'creator_id': user_id,
                 'hist_type': 'status_change',
                 'hist_data': json.dumps(self.clear_props(state)), 
                 'created': datetime.now()
