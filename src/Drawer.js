@@ -218,7 +218,7 @@ export default function GameDrawer() {
               onClick={handleMenuOpen}
               color="inherit"
             >
-              <PersonName user={state.user} />
+              <PersonName user={state.user} disableProfile />
             </IconButton>
 
             <Menu

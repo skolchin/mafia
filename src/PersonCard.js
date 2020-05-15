@@ -65,12 +65,12 @@ export default function PersonCard(props) {
                   <SentimentVeryDissatisfiedOutlined  style={{ color: "#808080" }} />
               }
             </Tooltip>
-            <Tooltip title="Оживить">
+            <Tooltip title="Reborn">
               <IconButton color="primary" aria-label="up" disabled="true">
                   <ThumbUpOutlined/>
               </IconButton>
             </Tooltip>
-            <Tooltip title="Замочить">
+            <Tooltip title="Kill">
               <IconButton 
                 color="primary" 
                 aria-label="down" 

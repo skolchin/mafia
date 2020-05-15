@@ -71,7 +71,7 @@ export default function PersonName(props) {
             : (<Avatar color="inherit" className={avatarClass} />)
         }
         label={props.showName ? userName : ''}
-        onClick={props.user && props.user.user_id ? handleClick : null}
+        onClick={props.user && props.user.user_id && !props.disableProfile ? handleClick : null}
       />
     )
   }
@@ -80,11 +80,19 @@ export default function PersonName(props) {
       <Tooltip title={props.user && props.user.user_id ? props.user.name : altTooltip}>
         {props.user && props.user.user_id
           ? (
-            <IconButton className={buttonClass} onClick={handleClick}>
+            props.disableProfile 
+            ? (
               <Avatar color="inherit" src={Backend.avatarURL(props.user)} className={avatarClass}>
                 {props.showName ? Backend.nameInitials(props.user) : <AccountCircle />}
               </Avatar>
-            </IconButton>
+            )
+            : (
+              <IconButton className={buttonClass} onClick={handleClick}>
+                <Avatar color="inherit" src={Backend.avatarURL(props.user)} className={avatarClass}>
+                  {props.showName ? Backend.nameInitials(props.user) : <AccountCircle />}
+                </Avatar>
+              </IconButton>
+            )
           )
           : (
             <Avatar color="inherit" className={avatarClass}>
@@ -102,4 +110,5 @@ PersonName.propTypes = {
   altTooltip: PropTypes.string,
   asChip: PropTypes.bool,
   showName: PropTypes.bool,
+  disableProfile: PropTypes.bool,
 }
