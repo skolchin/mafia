@@ -63,5 +63,22 @@ export default class Backend {
                 return 'Game "' + game.name + '" status has changed to ' + change.status;
         }
     }
-
+    static fetch(url, request, okHandler, errorHandler) {
+        fetch(url, request)
+        .then(res => {
+          if (res.ok || res.status === 500) {
+            return res.json();
+          }
+          throw res;
+        })
+        .then(resJson => {
+            if (resJson.error) {
+                errorHandler(resJson.error)
+            }
+            else {
+                okHandler(resJson)
+            }
+        })
+        .catch(error => errorHandler(error.message || error.statusText))
+    }
 }

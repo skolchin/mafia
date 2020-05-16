@@ -14,26 +14,17 @@ import Backend from './backend';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    minWidth: 300,
+    minWidth: 315,
+    minHeight: 250,
     height: "100%",
     display: 'flex',
     marginLeft: "5px",
     marginRight: "5px",
     marginBottom: "10px"
   },
-  details: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
   content: {
     display: 'flex',
     alignItems: 'center',
-  },
-  actions: {
-    display: 'flex',
-    alignItems: 'center',
-    paddingLeft: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
   },
 }));
 
@@ -48,36 +39,30 @@ export default function NewGameCard(props) {
 
   const handleNewGame = () => {
     setData({ ...data, isSubmitting: true })
-    fetch(Backend.GAMES_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({
-        a: "new",
-        user_id: state.user.user_id,
-        name: '<New game>'
-      })
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-        throw res;
-      })
-      .then(resJson => {
+    Backend.fetch(
+      Backend.GAMES_URL, 
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          a: "new",
+          user_id: state.user.user_id,
+          name: '<New game>'
+        })
+      },      
+      ((resJson) => {
+        setData({ ...data, isSubmitting: false })
         dispatch({
           type: "NEW_GAME",
           payload: resJson
         })
+      }),
+      ((error) => {
         setData({ ...data, isSubmitting: false })
+        props.onError(error);
       })
-      .catch(error => {
-        setData({
-          ...data,
-          isSubmitting: false,
-        });
-        props.onError(error.message || error.statusText);
-      });
+    )
   }
 
   return (

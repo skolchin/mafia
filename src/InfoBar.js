@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+
 import Button from '@material-ui/core/Button';
 import Snackbar from '@material-ui/core/Snackbar';
 import Alert from '@material-ui/lab/Alert';
@@ -25,7 +27,7 @@ export default function InfoBar(props) {
   return (
     <div className={classes.root}>
       <Snackbar 
-        open={_props.open} 
+        open={Boolean(_props.open)} 
         autoHideDuration={_props.autoHide} 
         onClick={() => _props.onClose(false)}
         onClose={() => _props.onClose(false)}
@@ -47,4 +49,14 @@ export default function InfoBar(props) {
       </Snackbar>
     </div>
   );
+}
+
+InfoBar.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func,
+  onClick: PropTypes.func,
+  autoHide: PropTypes.number,
+  severity: PropTypes.string,
+  message: PropTypes.string,
+  ok: PropTypes.string,
 }

@@ -98,6 +98,8 @@ const useStyles = makeStyles((theme) => ({
   padded: {
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
   }
 }));
 
@@ -299,7 +301,7 @@ export default function GameDrawer() {
         })}
       >
         <div className={classes.drawerHeader} />
-        <Grid container alignItems="stretch">
+        <Grid container alignItems="stretch" justify="flex-start" >
           {state.user.token && data.filterStates.indexOf('new') >= 0 && (
             <Grid item key="new" className={classes.padded} >
               <NewGameCard onError={handleErrror} />
@@ -315,13 +317,13 @@ export default function GameDrawer() {
         </Grid>
 
         <Login open={data.loginOpen} onClose={handleLoginClose} />
-        <InfoBar open={state.lastMessage}
+        <InfoBar open={Boolean(state.lastMessage)}
           severity='info'
           message={state.lastMessage}
           autoHide={3000}
           onClose={handleInfoClose}
         />
-        <InfoBar open={data.errorMessage}
+        <InfoBar open={Boolean(data.errorMessage)}
           severity='error'
           message={data.errorMessage}
           autoHide={3000}

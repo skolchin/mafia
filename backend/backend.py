@@ -20,6 +20,9 @@ def dt_from_str(s):
     else:
         return datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
+class BackendError(Exception):
+    pass
+
 class Backend:
     MAFIA_DB = "C:\\Users\\kol\\Documents\\kol\\mafia\\mafia.db"
     SESSION_PERIOD = 7      # days
@@ -91,7 +94,7 @@ class Backend:
                 'where login = ?', [login]
             )
         else:
-            raise Exception('Invalid method call')
+            raise BackendError('Invalid method call')
         return cursor.fetchone()
 
     def login_user(self, login, password, conn=None):

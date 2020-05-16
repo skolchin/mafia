@@ -7,15 +7,36 @@ from flask_cors import CORS, cross_origin
 from time import sleep
 from datetime import datetime
 from urllib.parse import quote_plus
+from sqlite3 import DatabaseError       #pylint: disable=no-name-in-module
 
-from backend import Backend, dt_to_str, dt_from_str
+from backend import Backend, BackendError, dt_to_str, dt_from_str
+
+backend = Backend()
+
+class MafiaApi(Api):
+    error_classes = [IndexError, ValueError, BackendError, DatabaseError]
+
+    def error_router(self, original_handler, error):
+        for error_class in MafiaApi.error_classes:
+            if isinstance(error, error_class):
+                self.app.logger.exception(error)
+                return self.handle_error(error)
+
+        return super(MafiaApi, self).error_router(original_handler, error)
+
+    def handle_error(self, error):
+        for error_class in MafiaApi.error_classes:
+            if isinstance(error, error_class):
+                return jsonify({"error": str(error)}), 500, {'Content-Type': 'application/json'}
+        
+        return super(MafiaApi, self).handle_error(error)
 
 app = Flask(__name__, static_folder='public')
 app.config['JSON_AS_ASCII'] = False
-api = Api(app)
+app.config['JSON_AS_ASCII'] = False
+app.config['PROPAGATE_EXCEPTIONS'] = False
+api = MafiaApi(app)
 cors = CORS(app, allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials"])
-
-backend = Backend()
 
 class UserListResource(Resource):
     def get(self):

@@ -181,7 +181,7 @@ export function Login(props) {
           </Button>
         </DialogActions>
 
-        <InfoBar open={toastOpen} 
+        <InfoBar open={Boolean(toastOpen)} 
           severity = 'info'
           message = {'Login ' + data.login + ' not found. Register?'}
           action = "OK"
@@ -189,7 +189,7 @@ export function Login(props) {
           onClick = {handleNewUser}
           />
 
-        <InfoBar open={data.errorMessage} 
+        <InfoBar open={Boolean(data.errorMessage)} 
           severity = 'error'
           message = {data.errorMessage}
           autoHide = {3000}

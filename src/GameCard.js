@@ -37,7 +37,7 @@ import InputBox from './InputBox';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    minWidth: 300,
+    minWidth: 315,
     minHeight: 250,
     height: "100%",
     display: 'flex',
@@ -100,33 +100,30 @@ export default function GameCard(props) {
       ...data,
       isEditing: false,
       isSubmitting: true
-    })
-    fetch(Backend.GAMES_URL, request)
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-        throw res;
-      })
-      .then(resJson => {
+    });
+    Backend.fetch(
+      Backend.GAMES_URL, 
+      request,
+      ((resJson) => {
+        setData({
+          ...data,
+          isEditing: false,
+          isSubmitting: false,
+        });
         dispatch({
           type: change_type,
           payload: resJson
-        })
-        setData({
-          ...data,
-          isEditing: false,
-          isSubmitting: false
-        })
-      })
-      .catch(error => {
-        setData({
-          ...data,
-          isSubmitting: false,
-          isEditing: false,
         });
-        props.onError(error.message || error.statusText);
-      });
+      }),
+      ((error) => {
+        setData({
+          ...data,
+          isEditing: false,
+          isSubmitting: false,
+        });
+        props.onError(error);
+      })
+    )
   }
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget);
