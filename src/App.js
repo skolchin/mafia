@@ -14,7 +14,7 @@ function App() {
   const [state, dispatch] = AppReducer();
   const [cookies] = useCookies(['token']);
   
-  useEffect(() => {
+/*   useEffect(() => {
     if (cookies.token && !state.user.token) {
       console.log('Restoring session');
       fetch(Backend.AUTH_URL,  {
@@ -68,6 +68,7 @@ function App() {
       })
     }
   }, [dispatch, cookies.token, state.user.token])
+ */
 
   return (
     <div className="App">

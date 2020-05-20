@@ -6,13 +6,12 @@ export default class Backend {
     static MESSAGES_URL = this.HOST + '/api/v1/m';
 
     static INITIAL_USER_STATE = {
-        user_id: null,
+        _id: null,
         login: null,
-        token: null,
         name: null,
     }
     static INITIAL_GAME_STATE = {
-        game_id: null,
+        _id: null,
         name: null,
         started: null,
         round: null,
@@ -41,15 +40,15 @@ export default class Backend {
 
     static eventSource = null;
 
-    static avatarURL(values) {
-        return this.AVATAR_URL + '?user_id=' + values.user_id.toString()
+    static avatarURL(user) {
+        return this.AVATAR_URL + '?user_id=' + user._id
     }
-    static nameInitials(values) {
-        var parts = values.name.toUpperCase().split(' ')
+    static nameInitials(user) {
+        var parts = user.displayName.toUpperCase().split(' ')
         return parts[0][0] + (parts.length > 1 ? parts[1][0] : '')
     }
     static canJoin(game, user_id) {
-        return game.leader.user_id !== user_id && game.members.findIndex(m => m.user_id === user_id) === -1
+        return game.leader._id !== user_id && game.members.findIndex(m => m._id === user_id) === -1
     }
     static getGameStatusMessage(game, change) {
         switch (change.status) {
@@ -63,22 +62,24 @@ export default class Backend {
                 return 'Game "' + game.name + '" status has changed to ' + change.status;
         }
     }
-    static fetch(url, request, okHandler, errorHandler) {
-        fetch(url, request)
+    static fetch(url, options, okHandler, errorHandler) {
+        fetch(url, options)
         .then(res => {
-          if (res.ok || res.status === 500) {
+          if (res.ok) {
             return res.json();
           }
           throw res;
         })
         .then(resJson => {
-            if (resJson.error) {
-                errorHandler(resJson.error)
+            if (!resJson.success) {
+                errorHandler(resJson.message)
             }
             else {
-                okHandler(resJson)
+                okHandler(resJson.data)
             }
         })
-        .catch(error => errorHandler(error.message || error.statusText))
+        .catch(error => {
+            errorHandler(error.message || error.statusText)
+        })
     }
 }

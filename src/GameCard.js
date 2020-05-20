@@ -153,7 +153,7 @@ export default function GameCard(props) {
         body: JSON.stringify({
           a: "update",
           game_id: game.game_id,
-          user_id: state.user.user_id,
+          user_id: state.user._id,
           name: text,
         })
       },
@@ -168,7 +168,7 @@ export default function GameCard(props) {
         body: JSON.stringify({
           a: "next_state",
           game_id: game.game_id,
-          user_id: state.user.user_id,
+          user_id: state.user._id,
         })
       },
       'CHANGE_STATE')
@@ -182,7 +182,7 @@ export default function GameCard(props) {
         body: JSON.stringify({
           a: "stop",
           game_id: game.game_id,
-          user_id: state.user.user_id,
+          user_id: state.user._id,
         })
       },
       'STOP_GAME')
@@ -196,7 +196,7 @@ export default function GameCard(props) {
         body: JSON.stringify({
           a: "join",
           game_id: game.game_id,
-          user_id: state.user.user_id,
+          user_id: state.user._id,
           role: null,
         })
       },
@@ -228,7 +228,7 @@ export default function GameCard(props) {
           >
             <MenuItem
               onClick={handleInputOpen}
-              disabled={data.isSubmitting || game.status !== "new" || game.leader.user_id !== state.user.user_id}
+              disabled={data.isSubmitting || game.status !== "new" || game.leader.user_id !== state.user._id}
             >
               Change name
             </MenuItem>
@@ -347,7 +347,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="next"
-                disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
+                disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user._id}
                 onClick={handleNextClick}
               >
                 {data.isSubmitting
@@ -374,7 +374,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="join"
-                disabled={data.isSubmitting || game.status !== "start" || !Backend.canJoin(game, state.user.user_id)}
+                disabled={data.isSubmitting || game.status !== "start" || !Backend.canJoin(game, state.user._id)}
                 onClick={handleJoinClick}
               >
                 <AddBoxOutlined />
@@ -387,7 +387,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="stop"
-                disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user.user_id}
+                disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user._id}
                 onClick={handleStopClick}
               >
                 <Stop />

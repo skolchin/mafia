@@ -142,7 +142,7 @@ export default function GameDrawer() {
   };
   const handleProfileOpen = () => {
     handleMenuClose();
-    history.push('/profile/' + state.user.user_id.toString());
+    history.push('/profile/' + state.user._id.toString());
   }
   const handleErrorClose = () => {
     setData({ ...data, errorMessage: null });
@@ -167,7 +167,7 @@ export default function GameDrawer() {
       credentials: "same-origin",
       body: JSON.stringify({
         a: "logout",
-        user_id: state.user.user_id,
+        user_id: state.user._id,
         token: state.user.token
       })
     })
@@ -220,7 +220,7 @@ export default function GameDrawer() {
               onClick={handleMenuOpen}
               color="inherit"
             >
-              <PersonName user={state.user} disableProfile />
+              <PersonName user={state.user} disableProfile showName />
             </IconButton>
 
             <Menu
@@ -238,17 +238,17 @@ export default function GameDrawer() {
               open={menuOpen}
               onClose={handleMenuClose}
             >
-              {!state.user.token && (
+              {!state.user._id && (
                 <MenuItem onClick={handleLoginOpen}>
                   Login
                 </MenuItem>
               )}
-              {state.user.token && (
+              {state.user._id && (
                 <MenuItem onClick={handleProfileOpen}>
                   Profile
                 </MenuItem>
               )}
-              {state.user.token && (
+              {state.user._id && (
                 <MenuItem onClick={handleLogout}>
                   Logout
                 </MenuItem>
@@ -271,7 +271,7 @@ export default function GameDrawer() {
           </IconButton>
         </div>
         <Divider />
-        {state.user.token && (
+        {state.user._id && (
           <List>
             <ListItem button key="new" disabled={data.isSubmitting} onClick={showNewGames}>
               <ListItemIcon>
@@ -302,12 +302,12 @@ export default function GameDrawer() {
       >
         <div className={classes.drawerHeader} />
         <Grid container alignItems="stretch" justify="flex-start" >
-          {state.user.token && data.filterStates.indexOf('new') >= 0 && (
+          {state.user._id && data.filterStates.indexOf('new') >= 0 && (
             <Grid item key="new" className={classes.padded} >
               <NewGameCard onError={handleErrror} />
             </Grid>
           )}
-          {state.user.token && (
+          {state.user._id && (
             state.games.filter(game => data.filterStates.indexOf(game.status) >= 0).map((game, index) => (
               <Grid item key={index} className={classes.padded}>
                 <GameCard game={game} onError={handleErrror} />

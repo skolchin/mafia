@@ -40,34 +40,27 @@ export function Login(props) {
         ...data,
         isSubmitting: true
       })
-      fetch(Backend.AUTH_URL,  {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        credentials: "same-origin",
-        body: JSON.stringify({
-            a: "login",
-            login: data.login,
-            password: data.password
-        })
-      })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-        throw res;
-      })
-      .then(resJson => {
-        if (resJson.user && resJson.user.token) {
-          // OK
+      Backend.fetch(
+        Backend.AUTH_URL,  
+        {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          credentials: "same-origin",
+          body: JSON.stringify({
+              name: data.login,
+              password: data.password
+          })
+        },
+        ((data) => {
           dispatch({
-              type: "LOAD",
-              payload: resJson,
+            type: "LOGIN",
+            payload: data,
           })
           handleClose(false);
-          setCookie('token', resJson.user.token, { path: '/' });
 
+          /*setCookie('token', resJson.user.token, { path: '/' });
           if (!Backend.eventSource) {
-            Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user.user_id);
+            Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
             const listener  = (e) => {
               console.log('New event');
               dispatch({
@@ -86,32 +79,16 @@ export function Login(props) {
                 Backend.eventSource = null;
               }
             })
-          }
-        }
-        else if (!resJson.user_id) {
-          // User not found
-          setData({
-            ...data,
-            isSubmitting: false
-          });
-          setToastOpen(true);
-        }
-        else {
-          // Wrong password
+          }*/
+        }),
+        ((error) => {
           setData({
             ...data,
             isSubmitting: false,
-            errorMessage: "Invalid password"
+            errorMessage: error
           });
-        }
-      })
-      .catch(error => {
-        setData({
-          ...data,
-          isSubmitting: false,
-          errorMessage: error.message || error.statusText
-        });
-      });
+        })
+      )
     }
 
     const handleNewUser = () => {
