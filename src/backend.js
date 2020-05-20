@@ -1,9 +1,9 @@
 export default class Backend {
     static HOST = 'http://localhost:5000';
-    static AUTH_URL = this.HOST + '/auth';
-    static AVATAR_URL = this.HOST + '/a';
-    static GAMES_URL = this.HOST + '/g';
-    static MESSAGES_URL = this.HOST + '/m';
+    static AUTH_URL = this.HOST + '/api/v1/auth';
+    static AVATAR_URL = this.HOST + '/api/v1/a';
+    static GAMES_URL = this.HOST + '/api/v1/games';
+    static MESSAGES_URL = this.HOST + '/api/v1/m';
 
     static INITIAL_USER_STATE = {
         user_id: null,
