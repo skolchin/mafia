@@ -4,6 +4,7 @@ export default class Backend {
     static AVATAR_URL = this.HOST + '/api/v1/a';
     static GAMES_URL = this.HOST + '/api/v1/games';
     static MESSAGES_URL = this.HOST + '/api/v1/m';
+    static USER_URL = this.HOST + '/api/v1/user';
 
     static INITIAL_USER_STATE = {
         _id: null,

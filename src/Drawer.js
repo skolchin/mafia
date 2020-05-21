@@ -142,7 +142,7 @@ export default function GameDrawer() {
   };
   const handleProfileOpen = () => {
     handleMenuClose();
-    history.push('/profile/' + state.user._id.toString());
+    history.push('/profile/' + state.user._id);
   }
   const handleErrorClose = () => {
     setData({ ...data, errorMessage: null });
