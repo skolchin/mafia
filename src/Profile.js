@@ -27,7 +27,7 @@ import InfoBar from './InfoBar';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-
+    display: 'flex',
   },
   header: {
     alignItems: "left",
@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
   },
   tabs: {
     borderRight: `1px solid ${theme.palette.divider}`,
-    height: 400,
+    height: 300,
     padding: theme.spacing(1),
   },
   tabsPanel: {
@@ -98,7 +98,7 @@ function a11yProps(index) {
 export default function Profile(props) {
   const classes = useStyles();
   const history = useHistory();
-  const {match: {params}} = props.args;
+  const {match: {params}} = props.args === undefined ? {match: {params:{user_id: null}}} : props.args
   const {user_id} = params;
   const [state, dispatch] = React.useContext(AppContext);
 
@@ -116,6 +116,12 @@ export default function Profile(props) {
   const handleTabChange = (event, value) => {
     setData({...data, section: value});
   };
+  const handleCancel = () => {
+    history.push('/');
+  };
+  const handleErrorClose = () => {
+    setData({...data, errorMessage: null});
+  }
   const handleSave = () => {
     setData({
       ...data,
@@ -148,16 +154,10 @@ export default function Profile(props) {
       })
     )
   };
-  const handleCancel = () => {
-    history.push('/');
-  };
-  const handleErrorClose = () => {
-    setData({...data, errorMessage: null});
-  }
 
   useEffect(() => {
     if (!data.user && user_id && user_id === state.user._id) {
-      setData({...data, user: state.user});
+      setData({...data, user: {...state.user, new_password: state.user.password}});
     }
     else if (!data.user && user_id) {
       //TODO
@@ -168,169 +168,123 @@ export default function Profile(props) {
   //  return (<Box />)
   //else 
   return (
-    <Box>
-      <Typography variant="h5" align="left" className={classes.header}>User profile</Typography>
+    <div className={classes.root}>
+      <Box>
+        <Card>
+          <CardContent className={classes.cardContent}>
+            <Typography variant="h5" align="left" className={classes.header}>User profile</Typography>
 
-      <div className={classes.content}>
-        <Tabs
-          orientation="vertical"
-          variant="scrollable"
-          value={data.section}
-          onChange={handleTabChange}
-          aria-label="Profile"
-          className={classes.tabs}
-        >
-          <Tab label="Basic Info" {...a11yProps(0)} />
-          <Tab label="Avatar" {...a11yProps(1)} />
-          <Tab label="Security" {...a11yProps(2)} />
-        </Tabs>
+            <div className={classes.content}>
+              <Tabs
+                orientation="vertical"
+                variant="scrollable"
+                value={data.section}
+                onChange={handleTabChange}
+                aria-label="Profile"
+                className={classes.tabs}
+              >
+                <Tab label="Basic Info" {...a11yProps(0)} />
+                <Tab label="Avatar" {...a11yProps(1)} />
+                <Tab label="Security" {...a11yProps(2)} />
+              </Tabs>
 
-        <TabPanel value={data.section} index={0} className={classes.tabPanel}>
-          <Card>
-            <CardContent className={classes.cardContent}>
-              <TextField
-                autoFocus
-                disabled={data.isSubmitting} 
-                required
-                value={data.user ? data.user.name : null}
-                id = "name"
-                label = "Login name"
-                variant="outlined"
-                helperText="Enter login name or email address"
-                onChange = {handleChange("name")} />
+              <TabPanel value={data.section} index={0} className={classes.tabPanel}>
+                <TextField
+                  autoFocus
+                  disabled={data.isSubmitting} 
+                  required
+                  value={data.user ? data.user.name : null}
+                  id = "name"
+                  label = "Login name"
+                  variant="outlined"
+                  helperText="Enter login name or email address"
+                  onChange = {handleChange("name")} />
 
-              <TextField
-                disabled={data.isSubmitting} 
-                value={data.user ? data.user.displayName : null}
-                id = "displayName"
-                label = "Display name"
-                variant="outlined"
-                helperText="Enter a name to be displayed to others"
-                onChange = {handleChange("displayName")} />
-                <br />
+                <TextField
+                  disabled={data.isSubmitting} 
+                  value={data.user ? data.user.displayName : null}
+                  id = "displayName"
+                  label = "Display name"
+                  variant="outlined"
+                  helperText="Enter a name to be displayed to others"
+                  onChange = {handleChange("displayName")} />
+                  <br />
 
-              <TextField
-                disabled={data.isSubmitting} 
-                value={data.user ? data.user.givenName : null}
-                id = "givenName"
-                label = "First name"
-                variant="outlined"
-                helperText="Enter first (given) name"
-                onChange = {handleChange("givenName")} />
+                <TextField
+                  disabled={data.isSubmitting} 
+                  value={data.user ? data.user.givenName : null}
+                  id = "givenName"
+                  label = "First name"
+                  variant="outlined"
+                  helperText="Enter first (given) name"
+                  onChange = {handleChange("givenName")} />
 
-              <TextField
-                disabled={data.isSubmitting} 
-                value={data.user ? data.user.familyName : null}
-                id = "familyName"
-                label = "Last name"
-                variant="outlined"
-                helperText="Enter last (family) name"
-                onChange = {handleChange("familyName")} />
-                <br />
+                <TextField
+                  disabled={data.isSubmitting} 
+                  value={data.user ? data.user.familyName : null}
+                  id = "familyName"
+                  label = "Last name"
+                  variant="outlined"
+                  helperText="Enter last (family) name"
+                  onChange = {handleChange("familyName")} />
+                  <br />
+              </TabPanel>
 
-            </CardContent>
+              <TabPanel value={data.section} index={1}>
+                <IconButton>
+                  <Avatar className={classes.avatar_large}>
+                    <AccountCircle style={{ fontSize: 40 }} />
+                  </Avatar>
+                </IconButton>
+                <Typography variant="body2" color="textSecondary">Click to upload an avatar picture</Typography>
+              </TabPanel>
 
-            <CardActions>
-              <Button color="primary" disabled={data.isSubmitting} onClick={handleSave}>
-                {data.isSubmitting
-                  ? (<CircularProgress/>)
-                  : (data.user && data.user._id ? 'Save' : 'Create') 
-                }
-              </Button>
-              <Button color="primary" disabled={data.isSubmitting} onClick={handleCancel}>
-                Cancel
-              </Button>
-            </CardActions>
-          </Card>
-        </TabPanel>
-
-        <TabPanel value={data.section} index={1}>
-          <Card>
-            <CardContent className={classes.cardContent}>
-              <IconButton>
-                <Avatar className={classes.avatar_large}>
-                  <AccountCircle style={{ fontSize: 40 }} />
-                </Avatar>
-              </IconButton>
-              <Typography variant="body2" color="textSecondary">Click to upload an avatar picture</Typography>
-            </CardContent>
-
-            <CardActions>
-              <Button color="primary" disabled={data.isSubmitting} onClick={handleSave}>
-                {data.isSubmitting
-                  ? (<CircularProgress/>)
-                  : (data.user && data.user._id ? 'Save' : 'Create') 
-                }
-              </Button>
-              <Button color="primary" disabled={data.isSubmitting} onClick={handleCancel}>
-                Cancel
-              </Button>
-            </CardActions>
-          </Card>
-        </TabPanel>
-
-        <TabPanel value={data.section} index={2}>
-          <Card>
-            <CardContent className={classes.cardContent}>
-              <TextField
-                disabled={true} 
-                value={data.user ? data.user.password : null}
-                id = "current_password"
-                label = "Current password"
-                type = "password"
-                variant="outlined"
-                InputProps={{
-                  readOnly: true,
-                }}
+              <TabPanel value={data.section} index={2}>
+                <TextField
+                  disabled={true} 
+                  value={data.user ? data.user.password : null}
+                  id = "password"
+                  label = "Current password"
+                  type = "password"
+                  variant="outlined"
+                  InputProps={{readOnly: true, }}
                 />
 
-            <TextField
-              autoFocus
-              disabled={data.isSubmitting} 
-              required
-              value={""}
-              id = "name"
-              label = "New password"
-              type = "password"
-              variant="outlined"
-              helperText="Enter new password"
-              onChange = {handleChange("password")} />
-            </CardContent>
+                <TextField
+                  autoFocus
+                  disabled={data.isSubmitting} 
+                  required
+                  value={data.user ? data.user.new_password : null}
+                  id = "new_password"
+                  label = "New password"
+                  type = "password"
+                  variant="outlined"
+                  helperText="Enter new password"
+                  onChange = {handleChange("new_password")} />
+            </TabPanel>
+            </div>
+          </CardContent>
 
-            <CardActions>
-              <Button color="primary" disabled={data.isSubmitting} onClick={handleSave}>
-                {data.isSubmitting
-                  ? (<CircularProgress/>)
-                  : (data.user && data.user._id ? 'Save' : 'Create') 
-                }
-              </Button>
-              <Button color="primary" disabled={data.isSubmitting} onClick={handleCancel}>
-                Cancel
-              </Button>
-            </CardActions>
-          </Card>
-        </TabPanel>
-      </div>
+          <CardActions>
+            <Button color="primary" disabled={data.isSubmitting} onClick={handleSave}>
+              {data.isSubmitting
+                ? (<CircularProgress/>)
+                : (data.user && data.user._id ? 'Save' : 'Create') 
+              }
+            </Button>
+            <Button color="primary" disabled={data.isSubmitting} onClick={handleCancel}>
+              Close
+            </Button>
+          </CardActions>
+        </Card>
 
-      <InfoBar open={Boolean(data.errorMessage)} 
-        severity = 'error'
-        message = {data.errorMessage}
-        autoHide = {3000}
-        onClose = {handleErrorClose}
-      />
-    </Box>
+        <InfoBar open={Boolean(data.errorMessage)} 
+          severity = 'error'
+          message = {data.errorMessage}
+          autoHide = {3000}
+          onClose = {handleErrorClose}
+        />
+      </Box>
+    </div>
   );
 }
-
-
-
-
-
-/* displayName
-name
-familyName
-givenName
-emails
-photos
-password
- */

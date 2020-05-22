@@ -66,21 +66,16 @@ export default class Backend {
     static fetch(url, options, okHandler, errorHandler) {
         fetch(url, options)
         .then(res => {
-          if (res.ok) {
+          if (res.ok)
             return res.json();
-          }
           throw res;
         })
         .then(resJson => {
-            if (!resJson.success) {
-                errorHandler(resJson.message)
-            }
-            else {
+            if (!resJson.success)
+                errorHandler(resJson.message, resJson.error)
+            else
                 okHandler(resJson.data)
-            }
         })
-        .catch(error => {
-            errorHandler(error.message || error.statusText)
-        })
+        .catch(error => errorHandler(error.message || error.statusText, null))
     }
 }

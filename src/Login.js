@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCookies } from 'react-cookie';
+import { useHistory } from "react-router-dom";
 
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -17,12 +18,13 @@ import InfoBar from './InfoBar';
 
 export function Login(props) {
     const [, dispatch] = React.useContext(AppContext);
-    const [toastOpen, setToastOpen] = React.useState(false);
     const [, setCookie] = useCookies(['token']);
+    const history = useHistory();
 
     const initialState = {
       login: "",
       password: "",
+      isNewUser: false,
       isSubmitting: false,
       errorMessage: null
     };
@@ -31,15 +33,25 @@ export function Login(props) {
     const handleChange = name => event => {
       setData({
         ...data, 
+        isNewUser: false,
         [name]: event.target.value, errorMessage: null
       });
-      setToastOpen(false);
     };
+    const handleNewUser = () => {
+      history.push('/profile/');
+    }
+    const handleClose = () => {
+      setData({...data, isNewUser: false, errorMessage: null});
+      props.onClose(false);
+    }
+    const handleErrorClose = () => {
+      setData({...data, errorMessage: null});
+    }
+    const handleInfoClose = () => {
+      setData({...data, isNewUser: false});
+    }
     const handleLogin = () => {
-      setData({
-        ...data,
-        isSubmitting: true
-      })
+      setData({...data, isSubmitting: true})
       Backend.fetch(
         Backend.AUTH_URL,  
         {
@@ -81,29 +93,13 @@ export function Login(props) {
             })
           }*/
         }),
-        ((error) => {
-          setData({
-            ...data,
-            isSubmitting: false,
-            errorMessage: error
-          });
+        ((error, error_code) => {
+          if (error_code === 2) 
+          setData({...data, isSubmitting: false, isNewUser: true});
+        else
+            setData({...data, isSubmitting: false, errorMessage: error});
         })
       )
-    }
-
-    const handleNewUser = () => {
-      dispatch({
-        type: 'PROFILE',
-        payload: data,
-      })
-    }
-    const handleClose = () => {
-      setToastOpen(false);
-      setData({...data, errorMessage: null});
-      props.onClose(false);
-    }
-    const handleErrorClose = () => {
-      setData({...data, errorMessage: null});
     }
 
     return (
@@ -158,11 +154,11 @@ export function Login(props) {
           </Button>
         </DialogActions>
 
-        <InfoBar open={Boolean(toastOpen)} 
+        <InfoBar open={data.isNewUser} 
           severity = 'info'
           message = {'Login ' + data.login + ' not found. Register?'}
           action = "OK"
-          onClose = {setToastOpen}
+          onClose = {handleInfoClose}
           onClick = {handleNewUser}
           />
 
