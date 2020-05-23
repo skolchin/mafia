@@ -75,7 +75,7 @@ function App() {
       <AppContext.Provider value={[state, dispatch]}>
         <Router>
           <Route exact path='/' component={GameDrawer} />
-          <Route path='/profile/' component={Profile} />
+          <Route exact path='/profile/' component={Profile} />
           <Route
             path='/profile/:user_id'
             render={(props) => <Profile args={props} />}

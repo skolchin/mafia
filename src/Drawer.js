@@ -161,16 +161,6 @@ export default function GameDrawer() {
   }
   const handleLogout = () => {
     handleMenuClose();
-    fetch(Backend.AUTH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({
-        a: "logout",
-        user_id: state.user._id,
-        token: state.user.token
-      })
-    })
     setCookie('token', null, { path: '/' });
     removeCookie('token', { path: '/' })
     dispatch({ type: 'LOGOUT', payload: state.user })

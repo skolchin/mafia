@@ -5,10 +5,10 @@ export default class Backend {
     static GAMES_URL = this.HOST + '/api/v1/games';
     static MESSAGES_URL = this.HOST + '/api/v1/m';
     static USER_URL = this.HOST + '/api/v1/user';
+    static PHOTO_URL = this.HOST + '/api/v1/set_photo';
 
     static INITIAL_USER_STATE = {
         _id: null,
-        login: null,
         name: null,
     }
     static INITIAL_GAME_STATE = {
@@ -42,11 +42,15 @@ export default class Backend {
     static eventSource = null;
 
     static avatarURL(user) {
-        return this.AVATAR_URL + '?user_id=' + user._id
+        return !user ? null : this.AVATAR_URL + '?user_id=' + user._id
     }
     static nameInitials(user) {
-        var parts = user.displayName.toUpperCase().split(' ')
-        return parts[0][0] + (parts.length > 1 ? parts[1][0] : '')
+        if (!user || !user.displayName)
+            return null
+        else {
+            var parts = user.displayName.toUpperCase().split(' ')
+            return parts[0][0] + (parts.length > 1 ? parts[1][0] : '')
+        }
     }
     static canJoin(game, user_id) {
         return game.leader._id !== user_id && game.members.findIndex(m => m._id === user_id) === -1
