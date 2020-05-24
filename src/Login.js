@@ -60,12 +60,13 @@ export function Login(props) {
           credentials: "same-origin",
           body: JSON.stringify({
               name: data.login,
-              password: data.password
+              password: data.password,
+              with_games: true,
           })
         },
         ((data) => {
           dispatch({
-            type: "LOGIN",
+            type: "LOAD",
             payload: data,
           })
           handleClose(false);

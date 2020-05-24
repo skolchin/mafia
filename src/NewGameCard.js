@@ -40,16 +40,12 @@ export default function NewGameCard(props) {
   const handleNewGame = () => {
     setData({ ...data, isSubmitting: true })
     Backend.fetch(
-      Backend.GAMES_URL, 
+      Backend.GAME_URL, 
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({
-          a: "new",
-          user_id: state.user.user_id,
-          name: '<New game>'
-        })
+        body: JSON.stringify({game: {name: '<New game>', leader: state.user}, action: '<new>'})
       },      
       ((resJson) => {
         setData({ ...data, isSubmitting: false })

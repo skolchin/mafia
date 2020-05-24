@@ -6,6 +6,10 @@ const callGameReducer = (state, action) => {
     return state.games.map(g => (g.game_id === action.payload.game_id ? gameReducer(g, action) : g));
 }
 
+const updateGame = (state, action) => {
+    return state.games.map(g => (g.game_id === action.payload.game_id ? action.payload : g));
+}
+
 const callGameReducerWithList = (state, type, games) => {
     return !games 
         ? state 
@@ -55,16 +59,13 @@ const reducer = (state, action) => {
                 lastMessage: 'New game created',
             };
 
-        case 'CHANGE_NAME':
-        case 'CHANGE_STATE':
-        case 'STOP_GAME':
-        case 'JOIN_GAME':
+        case 'GAME_UPDATE':
             return {
                 ...state,
-                games: callGameReducer(state, action),
+                games: updateGame(state, action),
             }
 
-        case 'GAME_UPDATE':
+        case 'MSG_UPDATE':
             return {
                 ...state,
                 games: callGameReducerWithList(state, action.type, action.payload.game),
@@ -73,7 +74,7 @@ const reducer = (state, action) => {
                     : null,
             }
 
-        case 'STATUS_CHANGE':
+        case 'MSG_STATUS_CHANGE':
             return {
                 ...state,
                 games: callGameReducerWithList(state, action.type, action.payload.game),

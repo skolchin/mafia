@@ -3,6 +3,7 @@ export default class Backend {
     static AUTH_URL = this.HOST + '/api/v1/auth';
     static AVATAR_URL = this.HOST + '/api/v1/a';
     static GAMES_URL = this.HOST + '/api/v1/games';
+    static GAME_URL = this.HOST + '/api/v1/game';
     static MESSAGES_URL = this.HOST + '/api/v1/m';
     static USER_URL = this.HOST + '/api/v1/user';
     static PHOTO_URL = this.HOST + '/api/v1/set_photo';

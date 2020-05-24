@@ -95,15 +95,20 @@ export default function GameCard(props) {
     GameDisplayMap["next_period"][game.period] :
     GameDisplayMap["next_state"][game.status];
 
-  const updateGame = (request, change_type) => {
+  const updateGame = (upd, change_type) => {
     setData({
       ...data,
       isEditing: false,
       isSubmitting: true
     });
     Backend.fetch(
-      Backend.GAMES_URL, 
-      request,
+      Backend.GAME_URL, 
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(upd),
+      },
       ((resJson) => {
         setData({
           ...data,
@@ -111,7 +116,7 @@ export default function GameCard(props) {
           isSubmitting: false,
         });
         dispatch({
-          type: change_type,
+          type: 'GAME_UPDATE',
           payload: resJson
         });
       }),
@@ -145,62 +150,16 @@ export default function GameCard(props) {
     setMoreAnchor(null);
   };
   const handleNameUpdate = (text) => {
-    updateGame(
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          a: "update",
-          game_id: game.game_id,
-          user_id: state.user._id,
-          name: text,
-        })
-      },
-      'CHANGE_NAME')
+    updateGame({game: {_id: game._id, name: text}, action: '<name>'})
   }
   const handleNextClick = () => {
-    updateGame(
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          a: "next_state",
-          game_id: game.game_id,
-          user_id: state.user._id,
-        })
-      },
-      'CHANGE_STATE')
+    updateGame({game: {_id: game._id, status: game.status, period: game.period, }, action: '<next>'})
   }
   const handleStopClick = () => {
-    updateGame(
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          a: "stop",
-          game_id: game.game_id,
-          user_id: state.user._id,
-        })
-      },
-      'STOP_GAME')
+    updateGame({game: {_id: game._id, status: game.status}, action: '<stop>'})
   }
   const handleJoinClick = () => {
-    updateGame(
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          a: "join",
-          game_id: game.game_id,
-          user_id: state.user._id,
-          role: null,
-        })
-      },
-      'JOIN_GAME')
+    updateGame({game: {_id: game._id, status: game.status}, user: {_id: state.user._id, role: null}, action: '<join>'})
   }
   const handleGameOpen = () => {
     handleMenuClose();
@@ -228,7 +187,7 @@ export default function GameCard(props) {
           >
             <MenuItem
               onClick={handleInputOpen}
-              disabled={data.isSubmitting || game.status !== "new" || game.leader.user_id !== state.user._id}
+              disabled={data.isSubmitting || game.status !== "new" || game.leader._id !== state.user._id}
             >
               Change name
             </MenuItem>
@@ -347,7 +306,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="next"
-                disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user._id}
+                disabled={data.isSubmitting || game.status === "finish" || game.leader._id !== state.user._id}
                 onClick={handleNextClick}
               >
                 {data.isSubmitting
@@ -387,7 +346,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="stop"
-                disabled={data.isSubmitting || game.status === "finish" || game.leader.user_id !== state.user._id}
+                disabled={data.isSubmitting || game.status === "finish" || game.leader._id !== state.user._id}
                 onClick={handleStopClick}
               >
                 <Stop />
