@@ -34,6 +34,7 @@ import { GameDisplayMap } from './dict';
 import Backend from './backend';
 import PersonName from './PersonName';
 import InputBox from './InputBox';
+import InfoBar from './InfoBar';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -85,6 +86,7 @@ export default function GameCard(props) {
     name: "",
     isEditing: false,
     isSubmitting: false,
+    isConfirmStop: false,
     errorMessage: null
   };
   const [data, setData] = React.useState(initialState);
@@ -95,7 +97,7 @@ export default function GameCard(props) {
     GameDisplayMap["next_period"][game.period] :
     GameDisplayMap["next_state"][game.status];
 
-  const updateGame = (upd, change_type) => {
+  const updateGame = (upd) => {
     setData({
       ...data,
       isEditing: false,
@@ -150,20 +152,43 @@ export default function GameCard(props) {
     setMoreAnchor(null);
   };
   const handleNameUpdate = (text) => {
-    updateGame({game: {_id: game._id, name: text}, action: '<name>'})
+    updateGame({
+      game: {_id: game._id, name: text}, 
+      user: {_id: state.user._id},
+      action: '<name>'
+    })
   }
   const handleNextClick = () => {
-    updateGame({game: {_id: game._id, status: game.status, period: game.period, }, action: '<next>'})
+    updateGame({
+      game: {_id: game._id, status: game.status, period: game.period, }, 
+      user: {_id: state.user._id},
+      action: '<next>'
+    })
   }
   const handleStopClick = () => {
-    updateGame({game: {_id: game._id, status: game.status}, action: '<stop>'})
+    setData({ ...data, isConfirmStop: true });
+  }
+  const handleGameStop = () => {
+    setData({ ...data, isConfirmStop: false});
+    updateGame({
+      game: {_id: game._id, status: game.status}, 
+      user: {_id: state.user._id},
+      action: '<stop>'
+    })
+  }
+  const handleInfoClose = () => {
+    setData({ ...data, isConfirmStop: false });
   }
   const handleJoinClick = () => {
-    updateGame({game: {_id: game._id, status: game.status}, user: {_id: state.user._id, role: null}, action: '<join>'})
+    updateGame({
+      game: {_id: game._id, status: game.status}, 
+      user: {_id: state.user._id, role: null}, 
+      action: '<join>'
+    })
   }
   const handleGameOpen = () => {
     handleMenuClose();
-    history.push('/game/' + game.game_id.toString());
+    history.push('/game/' + game._id.toString());
   }
 
   return (
@@ -255,8 +280,10 @@ export default function GameCard(props) {
               <TableRow>
                 <TableCell>Status</TableCell>
                 <TableCell align="left">
-                  <Typography variant="body2">
-                    {GameDisplayMap["state"][game.status]}
+                  <Typography variant="body2" style={{"text-transform": "capitalize"}}>
+                    {game.status !== 'active' 
+                      ? GameDisplayMap["state"][game.status] 
+                      : `${game.period}: ${game.round}, alive: ${game.stats.total[1]}`}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -306,7 +333,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="next"
-                disabled={data.isSubmitting || game.status === "finish" || game.leader._id !== state.user._id}
+                disabled={data.isSubmitting || game.status === "finish" || game.status === "cancel" || game.leader._id !== state.user._id}
                 onClick={handleNextClick}
               >
                 {data.isSubmitting
@@ -316,7 +343,7 @@ export default function GameCard(props) {
             </span>
           </Tooltip>
 
-          <Tooltip title="Start voting">
+          <Tooltip title="Vote">
             <span>
               <IconButton
                 color="primary"
@@ -346,7 +373,7 @@ export default function GameCard(props) {
               <IconButton
                 color="primary"
                 aria-label="stop"
-                disabled={data.isSubmitting || game.status === "finish" || game.leader._id !== state.user._id}
+                disabled={data.isSubmitting || game.status === "finish" || game.status === "cancel" || game.leader._id !== state.user._id}
                 onClick={handleStopClick}
               >
                 <Stop />
@@ -364,6 +391,16 @@ export default function GameCard(props) {
           prompt='Enter new game name'
           label='Value'
         />
+
+        <InfoBar open={data.isConfirmStop} 
+          severity='info'
+          message={'Cancel game "' + game.name + '"?'}
+          action="YES"
+          onClose={handleInfoClose}
+          onClick={handleGameStop}
+          />
+
+
       </div>
     </Card>
   );

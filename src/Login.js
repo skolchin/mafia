@@ -109,11 +109,12 @@ export function Login(props) {
         <DialogTitle>Login</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Enter your email and password and press "LOGIN".
+            Enter your login name and password and press "LOGIN".
           </DialogContentText>
           <TextField
             autoFocus
             disabled={data.isSubmitting} 
+            required
             margin = "dense"
             id = "login"
             label = "Email"
@@ -130,6 +131,7 @@ export function Login(props) {
           <TextField
             margin = "dense"
             disabled={data.isSubmitting} 
+            required
             id = "password"
             label = "Password"
             type = "password"

@@ -1,0 +1,77 @@
+Date : 2020-05-25 22:11:33
+Directory : c:\Users\kol\Documents\kol\mafia
+Total : 40 files,  19895 codes, 226 comments, 384 blanks, all 20505 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JSON       |          5 |     16,577 |          0 |          5 |     16,582 |
+| JavaScript |         25 |      2,665 |        199 |        283 |      3,147 |
+| Python     |          3 |        547 |          4 |         72 |        623 |
+| CSS        |          2 |         45 |          0 |          8 |         53 |
+| Markdown   |          3 |         34 |          0 |         14 |         48 |
+| HTML       |          1 |         20 |         23 |          1 |         44 |
+| XML        |          1 |          7 |          0 |          1 |          8 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                           | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                              |         40 |     19,895 |        226 |        384 |     20,505 |
+| ..                                                             |         10 |      1,367 |         40 |        134 |      1,541 |
+| ..\mafia-srv                                                   |         10 |      1,367 |         40 |        134 |      1,541 |
+| ..\mafia-srv\.VSCodeCounter                                    |          2 |         33 |          0 |         13 |         46 |
+| ..\mafia-srv\routes                                            |          4 |        657 |         33 |         96 |        786 |
+| backend                                                        |          3 |        547 |          4 |         72 |        623 |
+| public                                                         |          2 |         45 |         23 |          2 |         70 |
+| src                                                            |         22 |      1,954 |        159 |        173 |      2,286 |
++----------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                       | language   | code       | comment    | blank      | total      |
++----------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\kol\Documents\kol\mafia-srv\.VSCodeCounter\details.md | Markdown   |         17 |          0 |          6 |         23 |
+| c:\Users\kol\Documents\kol\mafia-srv\.VSCodeCounter\results.md | Markdown   |         16 |          0 |          7 |         23 |
+| c:\Users\kol\Documents\kol\mafia-srv\app.js                    | JavaScript |         40 |          0 |          9 |         49 |
+| c:\Users\kol\Documents\kol\mafia-srv\app_test.js               | JavaScript |         66 |          7 |         14 |         87 |
+| c:\Users\kol\Documents\kol\mafia-srv\package-lock.json         | JSON       |        547 |          0 |          1 |        548 |
+| c:\Users\kol\Documents\kol\mafia-srv\package.json              | JSON       |         24 |          0 |          1 |         25 |
+| c:\Users\kol\Documents\kol\mafia-srv\routes\config.js          | JavaScript |          3 |          2 |          4 |          9 |
+| c:\Users\kol\Documents\kol\mafia-srv\routes\errors.js          | JavaScript |         41 |          3 |          8 |         52 |
+| c:\Users\kol\Documents\kol\mafia-srv\routes\game.js            | JavaScript |        342 |         13 |         38 |        393 |
+| c:\Users\kol\Documents\kol\mafia-srv\routes\user.js            | JavaScript |        271 |         15 |         46 |        332 |
+| c:\Users\kol\Documents\kol\mafia\README.md                     | Markdown   |          1 |          0 |          1 |          2 |
+| c:\Users\kol\Documents\kol\mafia\backend\backend.py            | Python     |        393 |          2 |         47 |        442 |
+| c:\Users\kol\Documents\kol\mafia\backend\rest_server.py        | Python     |        149 |          2 |         22 |        173 |
+| c:\Users\kol\Documents\kol\mafia\backend\test.py               | Python     |          5 |          0 |          3 |          8 |
+| c:\Users\kol\Documents\kol\mafia\package-lock.json             | JSON       |     15,937 |          0 |          1 |     15,938 |
+| c:\Users\kol\Documents\kol\mafia\package.json                  | JSON       |         44 |          0 |          1 |         45 |
+| c:\Users\kol\Documents\kol\mafia\public\index.html             | HTML       |         20 |         23 |          1 |         44 |
+| c:\Users\kol\Documents\kol\mafia\public\manifest.json          | JSON       |         25 |          0 |          1 |         26 |
+| c:\Users\kol\Documents\kol\mafia\src\App.css                   | CSS        |         33 |          0 |          6 |         39 |
+| c:\Users\kol\Documents\kol\mafia\src\App.js                    | JavaScript |         32 |         55 |          7 |         94 |
+| c:\Users\kol\Documents\kol\mafia\src\App.test.js               | JavaScript |          8 |          0 |          2 |         10 |
+| c:\Users\kol\Documents\kol\mafia\src\Drawer.js                 | JavaScript |        310 |          1 |         17 |        328 |
+| c:\Users\kol\Documents\kol\mafia\src\GameCard.js               | JavaScript |        389 |          0 |         24 |        413 |
+| c:\Users\kol\Documents\kol\mafia\src\GameProfile.js            | JavaScript |         24 |          0 |          4 |         28 |
+| c:\Users\kol\Documents\kol\mafia\src\InfoBar.js                | JavaScript |         57 |          0 |          6 |         63 |
+| c:\Users\kol\Documents\kol\mafia\src\InputBox.js               | JavaScript |         73 |          0 |          5 |         78 |
+| c:\Users\kol\Documents\kol\mafia\src\Login.js                  | JavaScript |        146 |         22 |         11 |        179 |
+| c:\Users\kol\Documents\kol\mafia\src\NewGameCard.js            | JavaScript |         79 |          0 |          9 |         88 |
+| c:\Users\kol\Documents\kol\mafia\src\PersonCard.js             | JavaScript |         86 |          0 |          6 |         92 |
+| c:\Users\kol\Documents\kol\mafia\src\PersonName.js             | JavaScript |        107 |          0 |          8 |        115 |
+| c:\Users\kol\Documents\kol\mafia\src\Profile.js                | JavaScript |        272 |         43 |         21 |        336 |
+| c:\Users\kol\Documents\kol\mafia\src\app_context.js            | JavaScript |         60 |          0 |         13 |         73 |
+| c:\Users\kol\Documents\kol\mafia\src\backend.js                | JavaScript |         77 |          0 |          5 |         82 |
+| c:\Users\kol\Documents\kol\mafia\src\dict.js                   | JavaScript |         40 |          0 |          2 |         42 |
+| c:\Users\kol\Documents\kol\mafia\src\game_reducer.js           | JavaScript |         28 |          0 |          7 |         35 |
+| c:\Users\kol\Documents\kol\mafia\src\index.css                 | CSS        |         12 |          0 |          2 |         14 |
+| c:\Users\kol\Documents\kol\mafia\src\index.js                  | JavaScript |         15 |          3 |          3 |         21 |
+| c:\Users\kol\Documents\kol\mafia\src\logo.svg                  | XML        |          7 |          0 |          1 |          8 |
+| c:\Users\kol\Documents\kol\mafia\src\serviceWorker.js          | JavaScript |         98 |         31 |         13 |        142 |
+| c:\Users\kol\Documents\kol\mafia\src\setupTests.js             | JavaScript |          1 |          4 |          1 |          6 |
+| Total                                                          |            |     19,895 |        226 |        384 |     20,505 |
++----------------------------------------------------------------+------------+------------+------------+------------+------------+

@@ -17,14 +17,9 @@ export default class Backend {
         name: null,
         started: null,
         round: null,
-        status: "new",          //new, start, active, finish
-        period: null,           //day, night
-        voting: null,           //none, active, done
-        voteState: [0, 0],      //[voted, total] of current voting
-        citizenState: [0, 0],   //[alive, total] of citizens
-        mafiaState: [0, 0],     //[alive, total] of mafia
-        total: [0, 0],          //[alive, total] in total
-        leader: null,           //leader
+        status: "new",
+        period: null,
+        leader: null,
         members: []
     }
     static INITIAL_MESSAGE_STATE = {

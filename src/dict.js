@@ -3,7 +3,8 @@ export const GameDisplayMap = {
             "new": "New",
             "start": "Registration",
             "active": "Active",
-            "finish": "Finished"
+            "finish": "Finished",
+            "cancel": "Cancelled",
         },
         "period": {
             "day": "Day",

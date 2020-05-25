@@ -157,7 +157,7 @@ export default function GameDrawer() {
     setData({ ...data, filterStates: ['active'] });
   }
   const showArchiveGames = () => {
-    setData({ ...data, filterStates: ['finish'] });
+    setData({ ...data, filterStates: ['finish', 'cancel'] });
   }
   const handleLogout = () => {
     handleMenuClose();
