@@ -33,29 +33,47 @@ const reducer = (state, action) => {
                 games: updateGame(state, action.payload),
             }
 
-        case 'MSG_UPDATE':
-            return {
-                ...state,
-                games: updateGame(state, action.payload.game),
-                lastMessage: action.payload.change.creator_id !== state.user.user_id 
-                    ? 'Game "' + action.payload.game.name + '" has been updated' 
-                    : null,
+        case 'MSG_GAME_UPDATE':
+            switch(action.payload.change.type) {
+                case 'name':
+                    return {
+                        ...state,
+                        games: updateGame(state, action.payload.game),
+                        lastMessage: action.payload.change.user_id !== state.user._id 
+                            ? 'Game "' + action.payload.game.name + '" has been updated' 
+                            : null,
+                    }
+    
+                case 'status':
+                case 'cancel':
+                    return {
+                        ...state,
+                        games: updateGame(state, action.payload.game),
+                        lastMessage: action.payload.change.user_id !== state.user._id 
+                            ? Backend.getGameStatusMessage(action.payload.game, action.payload.change)
+                            : null,
+                    }
+
+                case 'period':
+                    return {
+                        ...state,
+                        games: updateGame(state, action.payload.game),
+                        lastMessage: action.payload.change.user_id !== state.user._id 
+                        ? 'Game period "' + action.payload.game.name + '" has changed to '+ action.payload.change.period
+                        : null,
+                    }
+
+                case 'join':
+                    return {
+                        ...state,
+                        games: updateGame(state, action.payload.game),
+                        lastMessage: 'New member joined the game "' + action.payload.game.name + '"',
+                    }
+        
+                default:
+                    return state;
             }
 
-        case 'MSG_STATUS_CHANGE':
-            return {
-                ...state,
-                games: updateGame(state, action.payload.game),
-                lastMessage: Backend.getGameStatusMessage(action.payload.game, action.payload.change),
-            }
-
-        case 'NEW_MEMBER':
-            return {
-                ...state,
-                games: updateGame(state, action.payload.game),
-                lastMessage: 'New member joined the game "' + action.payload.game.name + '"',
-            }
-            
         case 'HIDE_MESSAGE':
             return {
                 ...state,

@@ -124,65 +124,31 @@ export default function Profile(props) {
     setData({...data, errorMessage: null});
   }
   const handleUpload = (event) => {
-    setData({
-      ...data,
-      isSubmitting: true
-    });
+    setData({...data, isSubmitting: true, });
     const fileReader = new FileReader();
     fileReader.readAsDataURL(event.target.files[0]);
     fileReader.onload = (e) => {
-      Backend.fetch(
+      Backend.post(
         Backend.PHOTO_URL, 
-        {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          credentials: "same-origin",
-          body: JSON.stringify({
-            user_id: data.user._id,
-            photo: e.target.result
-          }),
-        },
+        {user_id: data.user._id, photo: e.target.result},
         ((resJson) => {
-          setData({
-            ...data,
-            isSubmitting: false,
-            photo_url: Backend.avatarURL(state.user) + '&p=1',
-          });
+          setData({...data, isSubmitting: false, photo_url: Backend.avatarURL(state.user) + '&p=1', });
         }),
         ((error) => {
-          setData({
-            ...data,
-            isSubmitting: false,
-            errorMessage: error,
-          });
+          setData({...data, isSubmitting: false, errorMessage: error, });
         })
       )
     };
     
   }
   const handleSave = () => {
-    setData({
-      ...data,
-      isSubmitting: true
-    });
-    Backend.fetch(
+    setData({...data, isSubmitting: true });
+    Backend.post(
       Backend.USER_URL, 
-      {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        credentials: "same-origin",
-        body: JSON.stringify(data.user),
-      },
+      data.user,
       ((resJson) => {
-        setData({
-          ...data,
-          user: resJson,
-          isSubmitting: false,
-        });
-        dispatch({
-          type: 'LOGIN',
-          payload: resJson
-        });
+        setData({...data, user: resJson, isSubmitting: false, });
+        dispatch({type: 'LOAD', payload: {user: resJson}});
       }),
       ((error) => {
         setData({

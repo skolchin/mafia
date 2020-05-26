@@ -98,36 +98,16 @@ export default function GameCard(props) {
     GameDisplayMap["next_state"][game.status];
 
   const updateGame = (upd) => {
-    setData({
-      ...data,
-      isEditing: false,
-      isSubmitting: true
-    });
-    Backend.fetch(
+    setData({...data, isEditing: false, isSubmitting: true, isConfirmStop: false });
+    Backend.post(
       Backend.GAME_URL, 
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify(upd),
-      },
+      upd,
       ((resJson) => {
-        setData({
-          ...data,
-          isEditing: false,
-          isSubmitting: false,
-        });
-        dispatch({
-          type: 'GAME_UPDATE',
-          payload: resJson
-        });
+        setData({...data, isEditing: false, isSubmitting: false, isConfirmStop: false, });
+        dispatch({type: 'GAME_UPDATE', payload: resJson});
       }),
       ((error) => {
-        setData({
-          ...data,
-          isEditing: false,
-          isSubmitting: false,
-        });
+        setData({...data, isEditing: false, isSubmitting: false, isConfirmStop: false, });
         props.onError(error);
       })
     )
@@ -169,7 +149,6 @@ export default function GameCard(props) {
     setData({ ...data, isConfirmStop: true });
   }
   const handleGameStop = () => {
-    setData({ ...data, isConfirmStop: false});
     updateGame({
       game: {_id: game._id, status: game.status}, 
       user: {_id: state.user._id},
@@ -212,7 +191,7 @@ export default function GameCard(props) {
           >
             <MenuItem
               onClick={handleInputOpen}
-              disabled={data.isSubmitting || game.status !== "new" || game.leader._id !== state.user._id}
+              disabled={data.isSubmitting || (game.status !== "new" && game.status !== "start") || game.leader._id !== state.user._id}
             >
               Change name
             </MenuItem>

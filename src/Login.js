@@ -52,26 +52,17 @@ export function Login(props) {
     }
     const handleLogin = () => {
       setData({...data, isSubmitting: true})
-      Backend.fetch(
+      Backend.post(
         Backend.AUTH_URL,  
-        {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          credentials: "same-origin",
-          body: JSON.stringify({
-              name: data.login,
-              password: data.password,
-              with_games: true,
-          })
-        },
-        ((data) => {
+        {name: data.login, password: data.password, with_games: true, },
+        ((resJson) => {
           dispatch({
             type: "LOAD",
-            payload: data,
+            payload: resJson,
           })
           handleClose(false);
 
-          /*setCookie('token', resJson.user.token, { path: '/' });
+          /*setCookie('token', resJson.user.token, { path: '/' }); */
           if (!Backend.eventSource) {
             Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
             const listener  = (e) => {
@@ -81,9 +72,7 @@ export function Login(props) {
                 payload: JSON.parse(e.data),
               })
             }
-            Backend.eventSource.addEventListener('game_update', listener);
-            Backend.eventSource.addEventListener('status_change', listener);
-            Backend.eventSource.addEventListener('new_member', listener);
+            Backend.eventSource.addEventListener('msg_game_update', listener);
 
             window.addEventListener("beforeunload", (ev) => {
               ev.preventDefault();
@@ -92,7 +81,7 @@ export function Login(props) {
                 Backend.eventSource = null;
               }
             })
-          }*/
+          }
         }),
         ((error, error_code) => {
           if (error_code === 2) 

@@ -1,10 +1,11 @@
+
 export default class Backend {
     static HOST = 'http://localhost:5000';
     static AUTH_URL = this.HOST + '/api/v1/auth';
     static AVATAR_URL = this.HOST + '/api/v1/a';
     static GAMES_URL = this.HOST + '/api/v1/games';
     static GAME_URL = this.HOST + '/api/v1/game';
-    static MESSAGES_URL = this.HOST + '/api/v1/m';
+    static MESSAGES_URL = this.HOST + '/api/v1/updates';
     static USER_URL = this.HOST + '/api/v1/user';
     static PHOTO_URL = this.HOST + '/api/v1/set_photo';
 
@@ -59,6 +60,8 @@ export default class Backend {
                 return 'Game "' + game.name + '" has started'
             case 'finish':
                 return 'Game "' + game.name + '" has finished'
+            case 'cancel':
+                return 'Game "' + game.name + '" has cancelled'
             default:
                 return 'Game "' + game.name + '" status has changed to ' + change.status;
         }
@@ -77,5 +80,30 @@ export default class Backend {
                 okHandler(resJson.data)
         })
         .catch(error => errorHandler(error.message || error.statusText, null))
+    }
+
+    static get(url, query, okHandler, errorHandler) {
+        return Backend.fetch(
+            url + '?' + query, 
+            {
+                method: 'GET',
+                credentials: "same-origin",
+            },
+            okHandler,
+            errorHandler
+        )
+    }
+    static post(url, content, okHandler, errorHandler) {
+        return Backend.fetch(
+            url, 
+            {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify(content),
+            },
+            okHandler,
+            errorHandler
+        )
     }
 }
