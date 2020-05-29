@@ -98,7 +98,7 @@ export default class Backend {
             url, 
             {
                 method: 'POST',
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",  },
                 credentials: "same-origin",
                 body: JSON.stringify(content),
             },

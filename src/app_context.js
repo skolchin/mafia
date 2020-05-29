@@ -10,6 +10,12 @@ const reducer = (state, action) => {
         case 'LOGOUT':
             return Backend.INITIAL_APP_STATE;
   
+        case 'LOAD_USER':
+            return {
+                ...state,
+                user: action.payload.user,
+            }
+
         case 'LOAD':
             return {
                 ...state,

@@ -132,14 +132,13 @@ export default function Profile(props) {
         Backend.PHOTO_URL, 
         {user_id: data.user._id, photo: e.target.result},
         ((resJson) => {
-          setData({...data, isSubmitting: false, photo_url: Backend.avatarURL(state.user) + '&p=1', });
+          setData({...data, isSubmitting: false, photo_url: Backend.avatarURL(state.user) + '&p=1'});
         }),
         ((error) => {
-          setData({...data, isSubmitting: false, errorMessage: error, });
+          setData({...data, isSubmitting: false, errorMessage: error});
         })
       )
     };
-    
   }
   const handleSave = () => {
     setData({...data, isSubmitting: true });
@@ -148,14 +147,10 @@ export default function Profile(props) {
       data.user,
       ((resJson) => {
         setData({...data, user: resJson, isSubmitting: false, });
-        dispatch({type: 'LOAD', payload: {user: resJson}});
+        dispatch({type: 'LOAD_USER', payload: {user: resJson}});
       }),
       ((error) => {
-        setData({
-          ...data,
-          isSubmitting: false,
-          errorMessage: error,
-        });
+        setData({...data, isSubmitting: false, errorMessage: error});
       })
     )
   };
