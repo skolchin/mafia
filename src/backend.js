@@ -28,7 +28,6 @@ export default class Backend {
         received: null,
         message: null,
     }
-    
     static INITIAL_APP_STATE = {
         user: this.INITIAL_USER_STATE,
         games: [],
@@ -77,12 +76,13 @@ export default class Backend {
             if (!resJson.success)
                 errorHandler(resJson.message, resJson.error)
             else
-                okHandler(resJson.data)
+                okHandler(resJson.data, resJson.token)
         })
         .catch(error => errorHandler(error.message || error.statusText, null))
     }
 
     static get(url, query, okHandler, errorHandler) {
+        const authHeader = token ? { 'Authorization': token } : {};
         return Backend.fetch(
             url + '?' + query, 
             {
@@ -94,11 +94,14 @@ export default class Backend {
         )
     }
     static post(url, content, okHandler, errorHandler) {
+        const token = localStorage.getItem('token');
+        const authHeader = token ? { 'Authorization': token } : {};
+
         return Backend.fetch(
             url, 
             {
                 method: 'POST',
-                headers: { "Content-Type": "application/json",  },
+                headers: { ...authHeader, "Content-Type": "application/json", },
                 credentials: "same-origin",
                 body: JSON.stringify(content),
             },

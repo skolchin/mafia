@@ -77,7 +77,7 @@ export default function PersonName(props) {
   }
   else {
     return (
-      <Tooltip title={props.user && props.user._id ? props.user.displayName : altTooltip}>
+      <Tooltip title={props.user && props.user._id ? (props.user.displayName ? props.user.displayName : props.user.name) : altTooltip}>
         {props.user && props.user._id
           ? (
             props.disableProfile 

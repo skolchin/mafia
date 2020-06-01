@@ -20,7 +20,7 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 user: action.payload.user,
-                games:action.payload.games,
+                games:action.payload.games || [],
             }
 
         case 'NEW_GAME':

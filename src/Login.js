@@ -54,17 +54,17 @@ export function Login(props) {
       setData({...data, isSubmitting: true})
       Backend.post(
         Backend.AUTH_URL,  
-        {name: data.login, password: data.password, with_games: true, },
-        ((resJson) => {
+        {name: data.login, password: data.password, withGames: true, },
+        ((resJson, token) => {
           dispatch({
             type: "LOAD",
             payload: resJson,
           })
           handleClose(false);
 
-          /*setCookie('token', resJson.user.token, { path: '/' }); */
+          localStorage.setItem('token', token);
           if (!Backend.eventSource) {
-            Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
+            /*Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
             const listener  = (e) => {
               console.log('New event');
               dispatch({
@@ -72,7 +72,7 @@ export function Login(props) {
                 payload: JSON.parse(e.data),
               })
             }
-            Backend.eventSource.addEventListener('msg_game_update', listener);
+            Backend.eventSource.addEventListener('msg_game_update', listener);*/
 
             window.addEventListener("beforeunload", (ev) => {
               ev.preventDefault();
