@@ -146,8 +146,8 @@ export default function Profile(props) {
       Backend.USER_URL, 
       data.user,
       ((resJson) => {
-        setData({...data, user: resJson, isSubmitting: false, });
-        dispatch({type: 'LOAD_USER', payload: {user: resJson}});
+        setData({...data, user: resJson.user, isSubmitting: false, });
+        dispatch({type: 'LOAD', payload: resJson});
       }),
       ((error) => {
         setData({...data, isSubmitting: false, errorMessage: error});
@@ -160,7 +160,7 @@ export default function Profile(props) {
       setData({...data, user: {...state.user, new_password: ''}, photo_url: Backend.avatarURL(state.user)});
     }
     else if (!data.user && user_id) {
-      //TODO
+      // Load user profile
     }
   }, [user_id, state, data, setData]);
 

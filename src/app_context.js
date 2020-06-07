@@ -28,7 +28,7 @@ const reducer = (state, action) => {
                 ...state, 
                 games: [
                     ...state.games, 
-                    action.payload,
+                    action.payload.game,
                 ],
                 lastMessage: 'New game created',
             };
@@ -36,7 +36,7 @@ const reducer = (state, action) => {
         case 'GAME_UPDATE':
             return {
                 ...state,
-                games: updateGame(state, action.payload),
+                games: updateGame(state, action.payload.game),
             }
 
         case 'MSG_GAME_UPDATE':
