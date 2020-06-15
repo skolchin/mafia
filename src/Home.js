@@ -31,7 +31,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import { AppContext } from './app_context';
 import Backend from './backend';
-import Login from './Login';
+import LoginDlg from './LoginDlg';
 import GameCard from './GameCard';
 import NewGameCard from './NewGameCard';
 import InfoBar from './InfoBar';
@@ -99,7 +99,7 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
     paddingLeft: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
+    paddingRight: theme.spacing(1),
   }
 }));
 
@@ -142,7 +142,7 @@ export default function GameDrawer() {
   };
   const handleProfileOpen = () => {
     handleMenuClose();
-    history.push('/profile/' + state.user._id);
+    history.push('/profile?user_id=' + state.user._id);
   }
   const handleErrorClose = () => {
     setData({ ...data, errorMessage: null });
@@ -306,7 +306,7 @@ export default function GameDrawer() {
           )}
         </Grid>
 
-        <Login open={data.loginOpen} onClose={handleLoginClose} />
+        <LoginDlg open={data.loginOpen} onClose={handleLoginClose} />
         <InfoBar open={Boolean(state.lastMessage)}
           severity='info'
           message={state.lastMessage}

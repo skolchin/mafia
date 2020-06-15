@@ -4,8 +4,9 @@ import { useCookies } from 'react-cookie';
 
 import './App.css';
 import Backend from './backend';
-import GameDrawer from './Drawer';
-import Profile from './Profile';
+import Home from './Home';
+import Login from './Login';
+import Profile from './Profile2';
 import GameProfile from './GameProfile';
 
 import { AppContext, AppReducer } from './app_context';
@@ -74,12 +75,9 @@ function App() {
     <div className="App">
       <AppContext.Provider value={[state, dispatch]}>
         <Router>
-          <Route exact path='/' component={GameDrawer} />
-          <Route exact path='/profile/' component={Profile} />
-          <Route
-            path='/profile/:user_id'
-            render={(props) => <Profile args={props} />}
-          />
+          <Route exact path='/' component={Home} />
+          <Route path='/login' component={Login} />
+          <Route path='/profile/' component={Profile} />
           <Route
             path='/game/:game_id'
             render={(props) => <GameProfile args={props} />}

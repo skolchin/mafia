@@ -1,3 +1,4 @@
+import querystring from "querystring";
 
 export default class Backend {
   static HOST = 'http://localhost:5000';
@@ -35,10 +36,7 @@ export default class Backend {
     lastMessage: null,
   };
 
-  static eventSource = null;
-
   static avatarURL(user) {
-    const token = localStorage.getItem('token');
     return !user ? null : this.AVATAR_URL + '?user_id=' + user._id;
   }
   static nameInitials(user) {
@@ -113,4 +111,34 @@ export default class Backend {
       errorHandler
     )
   }
+
+  static eventSource = null;
+  static createEventSource(window) {
+    if (!Backend.eventSource) {
+      /*Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
+      const listener  = (e) => {
+        console.log('New event');
+        dispatch({
+          type: e.type.toUpperCase(),
+          payload: JSON.parse(e.data),
+        })
+      }
+      Backend.eventSource.addEventListener('msg_game_update', listener);*/
+
+      window.addEventListener("beforeunload", (ev) => {
+        ev.preventDefault();
+        if (Backend.eventSource) {
+          Backend.eventSource.close();
+          Backend.eventSource = null;
+        }
+      })
+    }
+  }
+
+  static getQuery(loc) {
+    //ignoreQueryPrefix doesn't work
+    const x = loc.search;
+    return querystring.parse(x && x[0] === '?' ? x.substring(1) : x);
+  }
 }
+

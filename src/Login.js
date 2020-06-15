@@ -1,167 +1,213 @@
 import React from 'react';
-import { useCookies } from 'react-cookie';
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
+import clsx from 'clsx';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Drawer from '@material-ui/core/Drawer';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import Divider from '@material-ui/core/Divider';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import withMobileDialog from '@material-ui/core/withMobileDialog';
 
-import { AppContext } from './app_context';
+import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import VpnKeyOutlined from '@material-ui/icons/VpnKeyOutlined';
+
 import Backend from './backend';
 import InfoBar from './InfoBar';
+import LoginDlg from './LoginDlg';
 
-export function Login(props) {
-    const [, dispatch] = React.useContext(AppContext);
-    const [, setCookie] = useCookies(['token']);
-    const history = useHistory();
+const drawerWidth = 300;
 
-    const initialState = {
-      login: "",
-      password: "",
-      isNewUser: false,
-      isSubmitting: false,
-      errorMessage: null
-    };
-    const [data, setData] = React.useState(initialState);
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: 'flex',
+  },
+  appBar: {
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+  },
+  appBarShift: {
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginLeft: drawerWidth,
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
+  hide: {
+    display: 'none',
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+  },
+  drawerPaper: {
+    width: drawerWidth,
+  },
+  drawerHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    // necessary for content to be below app bar
+    ...theme.mixins.toolbar,
+    justifyContent: 'flex-end',
+  },
+  drawerTitle: {
+    flexGrow: 1,
+  },
+  content: {
+    flexGrow: 1,
+    transition: theme.transitions.create('margin', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+    marginLeft: -drawerWidth,
+  },
+  contentShift: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    transition: theme.transitions.create('margin', {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    marginLeft: 0,
+  },
+  padded: {
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(1),
+  },
+  cardRoot: {
+    maxWidth: 400,
+    flexGrow: 1,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(2),
+  },
+  cardContent: {
+    //flex: '0 1 auto',
+    flexGrow: 1,
+    paddingTop: theme.spacing(3),
+    paddingBottom: theme.spacing(3),
+  },
+  cardActions: {
+    //flex: '1 1 auto',
+    flexGrow: 1,
+    display: 'flex',
+    alignItems: 'center',
+    paddingLeft: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+  },
+
+}));
+
+export default function Login() {
+  const classes = useStyles();
+  const theme = useTheme();
+  const history = useHistory();
+  const qs = Backend.getQuery(useLocation()); 
+
+  const initialState = {
+    drawerOpen: true,
+    isNewUser: false,
+    isSubmitting: false,
+    errorMessage: null
+  };
+  const [data, setData] = React.useState(initialState);
   
-    const handleChange = name => event => {
-      setData({
-        ...data, 
-        isNewUser: false,
-        [name]: event.target.value, errorMessage: null
-      });
-    };
-    const handleNewUser = () => {
-      history.push('/profile/');
-    }
-    const handleClose = () => {
-      setData({...data, isNewUser: false, errorMessage: null});
-      props.onClose(false);
-    }
-    const handleErrorClose = () => {
-      setData({...data, errorMessage: null});
-    }
-    const handleInfoClose = () => {
-      setData({...data, isNewUser: false});
-    }
-    const handleLogin = () => {
-      setData({...data, isSubmitting: true})
-      Backend.post(
-        Backend.AUTH_URL,  
-        {name: data.login, password: data.password, withGames: true, },
-        ((resJson, token) => {
-          dispatch({
-            type: "LOAD",
-            payload: resJson,
-          })
-          handleClose(false);
+  const handleDrawerOpen = () => {
+    setData({ ...data, drawerOpen: true });
+  };
+  const handleDrawerClose = () => {
+    setData({ ...data, drawerOpen: false });
+  };
+  const handleLoginClose = (user_id) => {
+    const base_url = qs.back ? '/' + qs.back : '/';
+    const uri = user_id ? '?user_id=' + user_id : '';
+    history.push(base_url + uri);
+  }
+  const handleErrorClose = () => {
+    setData({...data, errorMessage: null});
+  }
+  return (
+    <div className={classes.root}>
+    <CssBaseline />
+    <AppBar
+      position="fixed"
+      className={clsx(classes.appBar, {
+        [classes.appBarShift]: data.drawerOpen,
+      })}
+    >
+      <Toolbar>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          onClick={handleDrawerOpen}
+          edge="start"
+          className={clsx(classes.menuButton, data.drawerOpen && classes.hide)}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" noWrap className={classes.drawerTitle}>
+          Mafia!
+        </Typography>
+        <div>
+        </div>
+      </Toolbar>
+    </AppBar>
 
-          localStorage.setItem('token', token);
-          if (!Backend.eventSource) {
-            /*Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
-            const listener  = (e) => {
-              console.log('New event');
-              dispatch({
-                type: e.type.toUpperCase(),
-                payload: JSON.parse(e.data),
-              })
-            }
-            Backend.eventSource.addEventListener('msg_game_update', listener);*/
+    <Drawer
+      className={classes.drawer}
+      variant="persistent"
+      anchor="left"
+      open={data.drawerOpen}
+      classes={{
+        paper: classes.drawerPaper,
+      }}>
+      <div className={classes.drawerHeader}>
+        <IconButton onClick={handleDrawerClose}>
+          {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+        </IconButton>
+      </div>
+      <Divider />
+        <List>
+          <ListItem button key="new" disabled={data.isSubmitting}>
+            <ListItemIcon>
+              {data.isSubmitting ? <CircularProgress /> : <VpnKeyOutlined />}
+            </ListItemIcon>
+            <ListItemText primary="Login" />
+          </ListItem>
+        </List>
+    </Drawer>
 
-            window.addEventListener("beforeunload", (ev) => {
-              ev.preventDefault();
-              if (Backend.eventSource) {
-                Backend.eventSource.close();
-                Backend.eventSource = null;
-              }
-            })
-          }
-        }),
-        ((error, error_code) => {
-          if (error_code === 2) 
-          setData({...data, isSubmitting: false, isNewUser: true});
-        else
-            setData({...data, isSubmitting: false, errorMessage: error});
-        })
-      )
-    }
+    <main
+      className={clsx(classes.content, {
+        [classes.contentShift]: data.drawerOpen,
+      })}
+    >
+    <LoginDlg open={true} onClose={handleLoginClose} />
+    <InfoBar open={Boolean(data.errorMessage)} 
+      severity = 'error'
+      message = {data.errorMessage}
+      autoHide = {3000}
+      onClose = {handleErrorClose}
+      />
+    </main>
 
-    return (
-      <Dialog 
-        open={props.open}>
-        <DialogTitle>Login</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Enter your login name and password and press "LOGIN".
-          </DialogContentText>
-          <TextField
-            autoFocus
-            disabled={data.isSubmitting} 
-            required
-            margin = "dense"
-            id = "login"
-            label = "Email"
-            type = "email"
-            fullWidth
-            onChange = {handleChange("login")}
-            onKeyPress={(ev) => {
-              if (ev.key === 'Enter') {
-                  handleLogin();
-                  ev.preventDefault();
-              }
-            }}                    
-          />
-          <TextField
-            margin = "dense"
-            disabled={data.isSubmitting} 
-            required
-            id = "password"
-            label = "Password"
-            type = "password"
-            fullWidth
-            onChange = {handleChange("password")}
-            onKeyPress={(ev) => {
-              if (ev.key === 'Enter') {
-                  handleLogin();
-                  ev.preventDefault();
-              }
-            }}                    
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button color="primary" disabled={data.isSubmitting} onClick={handleLogin}>
-          {data.isSubmitting
-             ? (<CircularProgress/>)
-            : ('Login')
-          }
-          </Button>
-          <Button color="primary" disabled={data.isSubmitting} onClick={handleClose}>
-            Cancel
-          </Button>
-        </DialogActions>
-
-        <InfoBar open={data.isNewUser} 
-          severity = 'info'
-          message = {'Login ' + data.login + ' not found. Register?'}
-          action = "OK"
-          onClose = {handleInfoClose}
-          onClick = {handleNewUser}
-          />
-
-        <InfoBar open={Boolean(data.errorMessage)} 
-          severity = 'error'
-          message = {data.errorMessage}
-          autoHide = {3000}
-          onClose = {handleErrorClose}
-          />
-      </Dialog>
-    );
+  </div>
+  );
 }
 
-export default withMobileDialog()(Login);
