@@ -54,13 +54,17 @@ export default function PersonName(props) {
   const avatarClass = props.size === 'small' ? classes.small : classes.medium;
   const buttonClass = props.size === 'small' ? classes.button_small : classes.button_medium;
   const altTooltip = props.altTooltip || "Not logged in";
+  let displayName = altTooltip;
+  if (props.user && props.user._id) {
+    displayName = props.user.displayName ? props.user.displayName : props.user.name;
+  }
+  console.log(props.user);
 
   const handleClick = () => {
     history.push('/profile/' + props.user._id);
   }
 
   if (props.asChip) {
-    const userName = props.user && props.user._id ? props.user.displayName : altTooltip;
     return (
       <Chip
         size={props.size}
@@ -70,14 +74,14 @@ export default function PersonName(props) {
             ? (<Avatar color="inherit" src={Backend.avatarURL(props.user)} className={avatarClass} />)
             : (<Avatar color="inherit" className={avatarClass} />)
         }
-        label={props.showName ? userName : ''}
+        label={props.showName ? displayName : ''}
         onClick={props.user && props.user._id && !props.disableProfile ? handleClick : null}
       />
     )
   }
   else {
     return (
-      <Tooltip title={props.user && props.user._id ? (props.user.displayName ? props.user.displayName : props.user.name) : altTooltip}>
+      <Tooltip title={displayName ? displayName : ''}>
         {props.user && props.user._id
           ? (
             props.disableProfile 

@@ -65,7 +65,7 @@ export function Login(props) {
             payload: resJson,
           })
           localStorage.setItem('token', token);
-          Backend.createEventSource(window);
+          Backend.createEventSource(window, dispatch, resJson.user._id);
           handleClose(resJson.user._id);
         }),
         ((error, error_code) => {

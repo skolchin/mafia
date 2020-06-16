@@ -161,7 +161,7 @@ export default function GameCard(props) {
   const handleJoinClick = () => {
     updateGame({
       game: {_id: game._id, status: game.status}, 
-      user: {_id: state.user._id, role: null}, 
+      user: {_id: state.user._id, name: state.user.name, displayName: state.user.displayName, role: null}, 
       action: '<join>'
     })
   }

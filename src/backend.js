@@ -6,6 +6,7 @@ export default class Backend {
   static AVATAR_URL = this.HOST + '/api/v1/photo';
   static GAMES_URL = this.HOST + '/api/v1/games';
   static GAME_URL = this.HOST + '/api/v1/game';
+  static TEMP_TOKEN_URL = this.HOST + '/api/v1/temp_token';
   static MESSAGES_URL = this.HOST + '/api/v1/updates';
   static USER_URL = this.HOST + '/api/v1/user';
   static PHOTO_URL = this.HOST + '/api/v1/set_photo';
@@ -113,25 +114,37 @@ export default class Backend {
   }
 
   static eventSource = null;
-  static createEventSource(window) {
+  static createEventSource(window, dispatch, user_id) {
     if (!Backend.eventSource) {
-      /*Backend.eventSource = new EventSource(Backend.MESSAGES_URL + '?user_id=' + resJson.user._id);
-      const listener  = (e) => {
-        console.log('New event');
-        dispatch({
-          type: e.type.toUpperCase(),
-          payload: JSON.parse(e.data),
+      // Ask for temporary token
+      Backend.post(
+        Backend.TEMP_TOKEN_URL, 
+        {_id: user_id},
+        ((resJson, token) => {
+          Backend.eventSource = 
+            new EventSource(Backend.MESSAGES_URL + '?user_id=' + user_id + '&token=' + token);
+          const listener  = (e) => {
+            console.log('New event');
+            dispatch({
+              type: e.type.toUpperCase(),
+              payload: JSON.parse(e.data),
+            })
+          }
+          Backend.eventSource.addEventListener('msg_game_update', listener);
+    
+          window.addEventListener("beforeunload", (ev) => {
+            ev.preventDefault();
+            if (Backend.eventSource) {
+              Backend.eventSource.close();
+              Backend.eventSource = null;
+            }
+          })
+    
+        }),
+        ((error, error_code) => {
+          console.log('Error while setting up eventSource: ' + error)
         })
-      }
-      Backend.eventSource.addEventListener('msg_game_update', listener);*/
-
-      window.addEventListener("beforeunload", (ev) => {
-        ev.preventDefault();
-        if (Backend.eventSource) {
-          Backend.eventSource.close();
-          Backend.eventSource = null;
-        }
-      })
+      )
     }
   }
 
